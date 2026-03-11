@@ -170,7 +170,7 @@ public class StudentService {
         studentRepository.save(student);
 
         if (creation.isInitiateProblem()) {
-            throw new RuntimeException("Ошибка заселения: комната переполнена!");
+            throw new RuntimeException("Ошибка");
         }
 
         Contract contract = Contract.builder()
