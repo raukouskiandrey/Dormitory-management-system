@@ -9,6 +9,8 @@ import java.util.List;
 @Mapper(componentModel = "spring")
 public interface ContractMapper {
     public List<ContractResponseDto> toDtoList(List<Contract> contracts);
+
     public ContractResponseDto toDto(Contract contract);
+
     public Contract toEntity(ContractRequestDto request);
 }

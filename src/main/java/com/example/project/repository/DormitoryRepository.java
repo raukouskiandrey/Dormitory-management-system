@@ -16,5 +16,6 @@ public interface DormitoryRepository extends JpaRepository<Dormitory, Long> {
     List<Dormitory> findAllWithGraph();
 
     List<Dormitory> findAll();
+
     Dormitory findDormitoryById(Long id);
 }

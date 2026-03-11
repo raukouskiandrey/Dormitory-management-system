@@ -18,13 +18,16 @@ public class ViolationService {
     public ViolationRepository violationRepository;
     private final StudentService studentService;
 
-    public ViolationService(ViolationRepository violationRepository, ViolationMapper violationMapper, StudentService studentService, StudentRepository studentRepository) {
+    public ViolationService(ViolationRepository violationRepository,
+                            ViolationMapper violationMapper,
+                            StudentService studentService,
+                            StudentRepository studentRepository) {
         this.violationRepository = violationRepository;
         this.violationMapper = violationMapper;
         this.studentService = studentService;
     }
 
-    public List<ViolationResponseDto> findViolations(){
+    public List<ViolationResponseDto> findViolations() {
         List<Violation> violations = violationRepository.findAll();
         return violationMapper.toDtoList(violations);
     }
@@ -52,7 +55,7 @@ public class ViolationService {
         Violation violation = violationRepository.findViolationById(id);
 
         if (updatedViolation.getDate() != null) {
-           violation.setDate(updatedViolation.getDate());
+            violation.setDate(updatedViolation.getDate());
         }
 
         if (updatedViolation.getViolationType() != null) {

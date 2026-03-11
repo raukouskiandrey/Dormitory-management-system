@@ -14,6 +14,7 @@ import com.example.project.repository.StudentRepository;
 import com.example.project.repository.ViolationRepository;
 import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
+
 import java.util.List;
 
 @Service
@@ -24,7 +25,11 @@ public class StudentService {
     private final ContractRepository contractRepository;
     private final ViolationRepository violationRepository;
 
-    public StudentService(StudentMapper studentMapper, StudentRepository studentRepository, RoomService roomService, ContractRepository contractRepository, ViolationRepository violationRepository) {
+    public StudentService(StudentMapper studentMapper,
+                          StudentRepository studentRepository,
+                          RoomService roomService,
+                          ContractRepository contractRepository,
+                          ViolationRepository violationRepository) {
         this.studentMapper = studentMapper;
         this.studentRepository = studentRepository;
         this.roomService = roomService;
@@ -32,13 +37,12 @@ public class StudentService {
         this.violationRepository = violationRepository;
     }
 
-
-    public List<StudentResponseDto> findStudentsByRoom(int number){
+    public List<StudentResponseDto> findStudentsByRoom(int number) {
         List<Student> students = studentRepository.findByRoomNumber(number);
         return studentMapper.toDtoList(students);
     }
 
-    public List<StudentResponseDto> findStudentsByAge(int age){
+    public List<StudentResponseDto> findStudentsByAge(int age) {
         List<Student> students = studentRepository.findByAge(age);
         return studentMapper.toDtoList(students);
     }
@@ -107,7 +111,6 @@ public class StudentService {
         return studentMapper.toDto(student);
     }
 
-
     public StudentResponseDto updateStudent(Long id, StudentRequestDto studentUpdates) {
         Student student = studentRepository.findStudentById(id);
 
@@ -153,42 +156,6 @@ public class StudentService {
     }
 
     public StudentResponseDto creationStudentNoTx(StudentCreationDto creation) {
-      Room room = roomService.findRoomEntityById(creation.getRoomId());
-
-      Student student = Student.builder()
-              .name(creation.getName())
-              .surname(creation.getSurname())
-              .patronymic(creation.getPatronymic())
-              .phoneNumber(creation.getPhoneNumber())
-              .age(creation.getAge())
-              .chs(creation.getChs())
-              .room(room)
-              .build();
-      studentRepository.save(student);
-
-        if (creation.isInitiateProblem()) {
-            throw new RuntimeException("Ошибка заселения: комната переполнена!");
-        }
-
-      Contract contract = Contract.builder()
-              .number(creation.getContractNumber())
-              .startDate(creation.getContractStartDate())
-              .endDate(creation.getContractEndDate())
-              .student(student)
-              .build();
-      contractRepository.save(contract);
-
-        student.setContract(contract);
-        studentRepository.save(student);
-
-
-
-        room.getStudents().add(student);
-        return studentMapper.toDto(student);
-    }
-
-    @Transactional
-    public StudentResponseDto creationStudentWithTx(StudentCreationDto creation) {
         Room room = roomService.findRoomEntityById(creation.getRoomId());
 
         Student student = Student.builder()
@@ -217,9 +184,12 @@ public class StudentService {
         student.setContract(contract);
         studentRepository.save(student);
 
-
-
         room.getStudents().add(student);
         return studentMapper.toDto(student);
+    }
+
+    @Transactional
+    public StudentResponseDto creationStudentWithTx(StudentCreationDto creation) {
+        return creationStudentNoTx(creation);
     }
 }

@@ -1,6 +1,5 @@
 package com.example.project.mapper;
 
-
 import com.example.project.dto.request.ViolationRequestDto;
 import com.example.project.dto.response.ViolationResponseDto;
 import com.example.project.model.Violation;
@@ -11,8 +10,12 @@ import java.util.List;
 
 @Mapper(componentModel = "spring")
 public interface ViolationMapper {
-    public List<ViolationResponseDto> toDtoList(List<Violation> violations);
-    @Mapping(target = "studentIds", expression = "java(violation.getStudents().stream().map(student -> student.getId()).collect(java.util.stream.Collectors.toList()))")
+    List<ViolationResponseDto> toDtoList(List<Violation> violations);
+
+    @Mapping(target = "studentIds", expression = "java(violation.getStudents().stream()"
+            + ".map(student -> student.getId())"
+            + ".collect(java.util.stream.Collectors.toList()))")
     ViolationResponseDto toDto(Violation violation);
-    public Violation toEntity(ViolationRequestDto request);
+
+    Violation toEntity(ViolationRequestDto request);
 }

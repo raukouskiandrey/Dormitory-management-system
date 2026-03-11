@@ -1,15 +1,27 @@
 package com.example.project.model;
 
-import jakarta.persistence.*;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Table;
+import jakarta.persistence.Id;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToMany;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.FetchType;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.Builder;
+import lombok.AllArgsConstructor;
+import lombok.NoArgsConstructor;
 
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
 
-@Setter
 @Getter
+@Setter
+@Builder
+@AllArgsConstructor
+@NoArgsConstructor
 @Entity
 @Table(name = "rooms")
 public class Room {
@@ -20,10 +32,10 @@ public class Room {
     private Integer number;
     private Integer totalPlaces;
 
-    @OneToMany(mappedBy = "room",fetch = FetchType.LAZY)
-    private Set<Student> students;
-
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "dormitory_id")
     private Dormitory dormitory;
+
+    @OneToMany(mappedBy = "room", fetch = FetchType.LAZY)
+    private List<Student> students;
 }

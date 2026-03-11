@@ -17,13 +17,16 @@ public class ContractService {
     public ContractRepository contractRepository;
     public ContractMapper contractMapper;
 
-    public ContractService(ContractRepository contractRepository, ContractMapper contractMapper, StudentService studentService, StudentMapper studentMapper) {
+    public ContractService(ContractRepository contractRepository,
+                           ContractMapper contractMapper,
+                           StudentService studentService,
+                           StudentMapper studentMapper) {
         this.contractRepository = contractRepository;
         this.contractMapper = contractMapper;
         this.studentService = studentService;
     }
 
-    public List<ContractResponseDto> findContacts(){
+    public List<ContractResponseDto> findContacts() {
         List<Contract> contacts = contractRepository.findAll();
         return contractMapper.toDtoList(contacts);
     }

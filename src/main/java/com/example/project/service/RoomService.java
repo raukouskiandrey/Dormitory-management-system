@@ -6,7 +6,6 @@ import com.example.project.mapper.RoomMapper;
 import com.example.project.model.Dormitory;
 import com.example.project.model.Room;
 import com.example.project.repository.RoomRepository;
-import org.antlr.v4.runtime.tree.pattern.ParseTreePattern;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -23,12 +22,12 @@ public class RoomService {
         this.dormitoryService = dormitoryService;
     }
 
-    public List<RoomResponseDto> findRoomsWithGraph(){
+    public List<RoomResponseDto> findRoomsWithGraph() {
         List<Room> rooms = roomRepository.findAllWithGraph();
         return roomMapper.toDtoList(rooms);
     }
 
-    public List<RoomResponseDto> findRooms(){
+    public List<RoomResponseDto> findRooms() {
         List<Room> rooms = roomRepository.findAll();
         return roomMapper.toDtoList(rooms);
     }
@@ -50,7 +49,6 @@ public class RoomService {
         roomRepository.save(room);
         return roomMapper.toDto(room);
     }
-
 
     public RoomResponseDto updateRoom(Long id, RoomRequestDto roomUpdates) {
         Room room = roomRepository.findRoomById(id);
