@@ -1,6 +1,5 @@
 package com.example.project.repository;
 
-import com.example.project.model.Dormitory;
 import com.example.project.model.Room;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;

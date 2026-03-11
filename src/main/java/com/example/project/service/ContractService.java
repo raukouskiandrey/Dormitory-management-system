@@ -14,8 +14,8 @@ import java.util.List;
 @Service
 public class ContractService {
     private final StudentService studentService;
-    public ContractRepository contractRepository;
-    public ContractMapper contractMapper;
+    public final ContractRepository contractRepository;
+    public final ContractMapper contractMapper;
 
     public ContractService(ContractRepository contractRepository,
                            ContractMapper contractMapper,
