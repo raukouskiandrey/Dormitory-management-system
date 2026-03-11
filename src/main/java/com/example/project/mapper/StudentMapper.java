@@ -1,27 +1,18 @@
 package com.example.project.mapper;
 
-import com.example.project.dto.StudentDto;
+import com.example.project.dto.request.StudentRequestDto;
+import com.example.project.dto.response.StudentResponseDto;
 import com.example.project.model.Student;
-import java.util.ArrayList;
+import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
+
 import java.util.List;
-import org.springframework.stereotype.Component;
 
-@Component
-public class StudentMapper {
-    public List<StudentDto> toDtoList(List<Student> students) {
-        List<StudentDto> studentsDto = new ArrayList<>();
-        for (Student student : students) {
-            StudentDto studentDto = toDto(student);
-            studentsDto.add(studentDto);
-        }
-        return studentsDto;
-    }
-
-    public StudentDto toDto(Student student) {
-        StudentDto studentDto = new StudentDto();
-        studentDto.setName(student.getName());
-        studentDto.setSurname(student.getSurname());
-        studentDto.setPatronymic(student.getPatronymic());
-        return studentDto;
-    }
+@Mapper(componentModel = "spring")
+public interface StudentMapper {
+    public List<StudentResponseDto> toDtoList(List<Student> students);
+    @Mapping(target = "violationIds",
+            expression = "java(student.getViolations().stream().map(violation -> violation.getId()).collect(java.util.stream.Collectors.toList()))")
+    public StudentResponseDto toDto(Student student);
+    public Student toEntity(StudentRequestDto request);
 }
