@@ -15,7 +15,7 @@ import lombok.Builder;
 import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;
 
-import java.util.List;
+import java.util.Set;
 
 @Getter
 @Setter
@@ -37,5 +37,5 @@ public class Room {
     private Dormitory dormitory;
 
     @OneToMany(mappedBy = "room", fetch = FetchType.LAZY)
-    private List<Student> students;
+    private Set<Student> students;
 }

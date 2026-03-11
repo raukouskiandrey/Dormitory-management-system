@@ -14,7 +14,7 @@ import lombok.Builder;
 import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;
 
-import java.util.List;
+import java.util.Set;
 
 @Getter
 @Setter
@@ -32,5 +32,5 @@ public class Dormitory {
     private String address;
 
     @OneToMany(mappedBy = "dormitory", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    private List<Room> rooms;
+    private Set<Room> rooms;
 }
