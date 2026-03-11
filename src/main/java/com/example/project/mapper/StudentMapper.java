@@ -6,6 +6,7 @@ import com.example.project.model.Student;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -20,7 +21,7 @@ public interface StudentMapper {
 
     default List<Long> mapViolations(Student student) {
         if (student.getViolations() == null) {
-            return null;
+            return Collections.emptyList();
         }
         return student.getViolations().stream()
                 .map(violation -> violation.getId())
