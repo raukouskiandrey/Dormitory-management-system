@@ -14,8 +14,8 @@ import java.util.List;
 
 @Service
 public class ViolationService {
-    public ViolationMapper violationMapper;
-    public ViolationRepository violationRepository;
+    public final ViolationMapper violationMapper;
+    public final ViolationRepository violationRepository;
     private final StudentService studentService;
 
     public ViolationService(ViolationRepository violationRepository,

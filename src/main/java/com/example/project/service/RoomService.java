@@ -13,8 +13,8 @@ import java.util.List;
 @Service
 public class RoomService {
     private final DormitoryService dormitoryService;
-    public RoomRepository roomRepository;
-    public RoomMapper roomMapper;
+    public final RoomRepository roomRepository;
+    public final RoomMapper roomMapper;
 
     public RoomService(RoomRepository roomRepository, RoomMapper roomMapper, DormitoryService dormitoryService) {
         this.roomRepository = roomRepository;

@@ -1,6 +1,5 @@
 package com.example.project.dto.response;
 
-import com.example.project.model.Student;
 import lombok.Getter;
 import lombok.Setter;
 

@@ -16,8 +16,8 @@ import java.util.List;
 @Service
 public class DormitoryService {
 
-    public DormitoryMapper dormitoryMapper;
-    public DormitoryRepository dormitoryRepository;
+    public final DormitoryMapper dormitoryMapper;
+    public final DormitoryRepository dormitoryRepository;
 
     public DormitoryService(DormitoryRepository dormitoryRepository, DormitoryMapper dormitoryMapper) {
         this.dormitoryRepository = dormitoryRepository;
