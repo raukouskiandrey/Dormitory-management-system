@@ -20,8 +20,7 @@ public class ViolationService {
 
     public ViolationService(ViolationRepository violationRepository,
                             ViolationMapper violationMapper,
-                            StudentService studentService,
-                            StudentRepository studentRepository) {
+                            StudentService studentService) {
         this.violationRepository = violationRepository;
         this.violationMapper = violationMapper;
         this.studentService = studentService;

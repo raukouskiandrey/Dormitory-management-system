@@ -19,8 +19,7 @@ public class ContractService {
 
     public ContractService(ContractRepository contractRepository,
                            ContractMapper contractMapper,
-                           StudentService studentService,
-                           StudentMapper studentMapper) {
+                           StudentService studentService) {
         this.contractRepository = contractRepository;
         this.contractMapper = contractMapper;
         this.studentService = studentService;
