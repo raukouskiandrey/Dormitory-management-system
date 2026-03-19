@@ -206,7 +206,7 @@ public class StudentService {
         return creationStudentNoTx(creation);
     }
 
-    public Page<StudentResponseDto> filterStudentsWithJPQLPaged(
+    public Page<StudentResponseDto> filterStudentsWithJpqlPaged(
             Integer age, Integer chs, ViolationType violationType, int page, int size) {
 
         CacheKey cacheKey = buildCacheKey("filterStudentsWithJPQLPaged", age, chs, violationType, page, size);

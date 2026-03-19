@@ -133,7 +133,7 @@ public class StudentController {
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size) {
 
-        return ResponseEntity.ok(studentService.filterStudentsWithJPQLPaged(age, chs, violationType, page, size));
+        return ResponseEntity.ok(studentService.filterStudentsWithJpqlPaged(age, chs, violationType, page, size));
     }
 
     @GetMapping("/filter/native")
