@@ -1,5 +1,7 @@
 package com.example.project.service;
 
+import com.example.project.cache.CacheKey;
+import com.example.project.cache.CacheManager;
 import com.example.project.dto.request.StudentCreationDto;
 import com.example.project.dto.request.StudentRequestDto;
 import com.example.project.dto.response.StudentResponseDto;
@@ -13,6 +15,10 @@ import com.example.project.repository.ContractRepository;
 import com.example.project.repository.StudentRepository;
 import com.example.project.repository.ViolationRepository;
 import jakarta.transaction.Transactional;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -24,17 +30,19 @@ public class StudentService {
     private final RoomService roomService;
     private final ContractRepository contractRepository;
     private final ViolationRepository violationRepository;
+    private final CacheManager cacheManager;
 
     public StudentService(StudentMapper studentMapper,
                           StudentRepository studentRepository,
                           RoomService roomService,
                           ContractRepository contractRepository,
-                          ViolationRepository violationRepository) {
+                          ViolationRepository violationRepository, CacheManager cacheManager) {
         this.studentMapper = studentMapper;
         this.studentRepository = studentRepository;
         this.roomService = roomService;
         this.contractRepository = contractRepository;
         this.violationRepository = violationRepository;
+        this.cacheManager = cacheManager;
     }
 
     public List<StudentResponseDto> findStudentsByRoom(int number) {
@@ -68,6 +76,7 @@ public class StudentService {
 
     public void deleteStudentById(Long id) {
         studentRepository.deleteById(id);
+        cacheManager.invalidate(Student.class);
     }
 
     public StudentResponseDto assignStudentToRoom(Long studentId, Long roomId) {
@@ -81,7 +90,7 @@ public class StudentService {
         student.setRoom(room);
         room.getStudents().add(student);
         studentRepository.save(student);
-
+        cacheManager.invalidate(Student.class);
         return studentMapper.toDto(student);
     }
 
@@ -97,7 +106,7 @@ public class StudentService {
         violation.getStudents().add(student);
 
         studentRepository.save(student);
-
+        cacheManager.invalidate(Student.class);
         return studentMapper.toDto(student);
     }
 
@@ -108,6 +117,7 @@ public class StudentService {
         student.setRoom(room);
         room.getStudents().add(student);
         studentRepository.save(student);
+        cacheManager.invalidate(Student.class);
         return studentMapper.toDto(student);
     }
 
@@ -121,6 +131,7 @@ public class StudentService {
         student.setAge(studentUpdates.getAge());
         student.setChs(studentUpdates.getChs());
         studentRepository.save(student);
+        cacheManager.invalidate(Student.class);
         return studentMapper.toDto(student);
     }
 
@@ -152,6 +163,7 @@ public class StudentService {
         }
 
         studentRepository.save(student);
+        cacheManager.invalidate(Student.class);
         return studentMapper.toDto(student);
     }
 
@@ -175,6 +187,7 @@ public class StudentService {
 
         Contract contract = Contract.builder()
                 .number(creation.getContractNumber())
+
                 .startDate(creation.getContractStartDate())
                 .endDate(creation.getContractEndDate())
                 .student(student)
@@ -192,4 +205,37 @@ public class StudentService {
     public StudentResponseDto creationStudentWithTx(StudentCreationDto creation) {
         return creationStudentNoTx(creation);
     }
+
+    public Page<StudentResponseDto> filterStudentsWithJPQLPaged(
+            Integer age, Integer chs, ViolationType violationType, int page, int size) {
+
+        CacheKey cacheKey = buildCacheKey("filterStudentsWithJPQLPaged", age, chs, violationType, page, size);
+
+        return cacheManager.computeIfAbsent(cacheKey, () -> {
+            Pageable pageable = PageRequest.of(page, size, Sort.by("id").ascending());
+            Page<Student> studentPage = studentRepository.findStudentsWithFiltersPaged(
+                    age, chs, violationType, pageable);
+
+            return studentPage.map(studentMapper::toDto);
+        });
+    }
+
+    public Page<StudentResponseDto> filterStudentsWithNativePaged(
+            Integer age, Integer chs, String violationType, int page, int size) {
+
+        CacheKey cacheKey = buildCacheKey("filterStudentsWithNativePaged", age, chs, violationType, page, size);
+
+        return cacheManager.computeIfAbsent(cacheKey, () -> {
+            Pageable pageable = PageRequest.of(page, size, Sort.by("id").ascending());
+            Page<Student> studentPage = studentRepository.findStudentsByComplexCriteriaNativePaged(
+                    age, chs, violationType, pageable);
+
+            return studentPage.map(studentMapper::toDto);
+        });
+    }
+
+    private CacheKey buildCacheKey(String methodName, Object... args) {
+        return new CacheKey(Student.class, methodName, args);
+    }
+
 }

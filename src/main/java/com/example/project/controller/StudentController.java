@@ -3,8 +3,11 @@ package com.example.project.controller;
 import com.example.project.dto.request.StudentCreationDto;
 import com.example.project.dto.request.StudentRequestDto;
 import com.example.project.dto.response.StudentResponseDto;
+import com.example.project.model.Student;
 import com.example.project.model.ViolationType;
 import com.example.project.service.StudentService;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -20,6 +23,8 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 
+import static org.springframework.http.ResponseEntity.ok;
+
 @RestController
 @RequestMapping("/student")
 public class StudentController {
@@ -30,30 +35,30 @@ public class StudentController {
         this.studentService = studentService;
     }
 
-    @GetMapping("")
+    @GetMapping("/all")
     public ResponseEntity<List<StudentResponseDto>> getStudents() {
-        return ResponseEntity.ok(studentService.findStudents());
+        return ok(studentService.findStudents());
     }
 
     @GetMapping("/{id}")
     public ResponseEntity<StudentResponseDto> getStudentsById(@PathVariable Long id) {
-        return ResponseEntity.ok(studentService.findStudentsById(id));
+        return ok(studentService.findStudentsById(id));
     }
 
     @GetMapping("/room/{number}")
     public ResponseEntity<List<StudentResponseDto>> getStudentsByRoom(@PathVariable int number) {
-        return ResponseEntity.ok(studentService.findStudentsByRoom(number));
+        return ok(studentService.findStudentsByRoom(number));
     }
 
-    @GetMapping("/age")
+    @GetMapping("")
     public ResponseEntity<List<StudentResponseDto>> getStudentsByAge(@RequestParam int age) {
-        return ResponseEntity.ok(studentService.findStudentsByAge(age));
+        return ok(studentService.findStudentsByAge(age));
     }
 
     @GetMapping("/violation/{type}")
     public ResponseEntity<List<StudentResponseDto>> getStudentsByViolation(
             @PathVariable ViolationType type) {
-        return ResponseEntity.ok(studentService.findByViolationsViolationType(type));
+        return ok(studentService.findByViolationsViolationType(type));
     }
 
     @PostMapping("/{studentId}/assign-to-room/{roomId}")
@@ -61,7 +66,7 @@ public class StudentController {
             @PathVariable Long studentId,
             @PathVariable Long roomId) {
         StudentResponseDto updatedStudent = studentService.assignStudentToRoom(studentId, roomId);
-        return ResponseEntity.ok(updatedStudent);
+        return ok(updatedStudent);
     }
 
     @PostMapping("/{studentId}/add-violation/{violationId}")
@@ -69,7 +74,7 @@ public class StudentController {
             @PathVariable Long studentId,
             @PathVariable Long violationId) {
         StudentResponseDto updatedStudent = studentService.addViolationToStudent(studentId, violationId);
-        return ResponseEntity.ok(updatedStudent);
+        return ok(updatedStudent);
     }
 
     @PostMapping("/{roomId}")
@@ -84,14 +89,14 @@ public class StudentController {
     public ResponseEntity<StudentResponseDto> updateStudentById(
             @PathVariable Long id,
             @RequestBody StudentRequestDto student) {
-        return ResponseEntity.ok(studentService.updateStudent(id, student));
+        return ok(studentService.updateStudent(id, student));
     }
 
     @PatchMapping("/{id}")
     public ResponseEntity<StudentResponseDto> updatePatchStudentById(
             @PathVariable Long id,
             @RequestBody StudentRequestDto student) {
-        return ResponseEntity.ok(studentService.updatePatchStudent(id, student));
+        return ok(studentService.updatePatchStudent(id, student));
     }
 
     @DeleteMapping("/{id}")
@@ -121,4 +126,27 @@ public class StudentController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
+
+    @GetMapping("/filter")
+    public ResponseEntity<Page<StudentResponseDto>> filterStudentsPaged(
+            @RequestParam(required = false) Integer age,
+            @RequestParam(required = false) Integer chs,
+            @RequestParam(required = false) ViolationType violationType,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
+
+        return ResponseEntity.ok(studentService.filterStudentsWithJPQLPaged(age, chs, violationType, page, size));
+    }
+
+    @GetMapping("/filter/native")
+    public ResponseEntity<Page<StudentResponseDto>> filterNativeStudentsPaged(
+            @RequestParam(required = false) Integer age,
+            @RequestParam(required = false) Integer chs,
+            @RequestParam(required = false) String violationType,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
+
+        return ResponseEntity.ok(studentService.filterStudentsWithNativePaged(age, chs, violationType, page, size));
+    }
+
 }
