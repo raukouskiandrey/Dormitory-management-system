@@ -4,7 +4,7 @@ import java.util.Arrays; // Добавьте импорт
 import java.util.List;
 
 public record CacheKey(Class<?> entityClass, String methodName, List<Object> args) {
-    public CacheKey(Class<?> entityClass, String methodName, Object... args){
+    public CacheKey(Class<?> entityClass, String methodName, Object... args) {
         this(entityClass, methodName, Arrays.asList(args));
     }
 }
