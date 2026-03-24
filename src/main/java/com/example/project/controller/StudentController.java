@@ -125,7 +125,7 @@ public class StudentController {
         }
     }
 
-    @GetMapping("/filter")
+    @GetMapping("/filter/jpql")
     public ResponseEntity<Page<StudentResponseDto>> filterStudentsPaged(
             @RequestParam(required = false) Integer chs,
             @RequestParam(required = false) ViolationType violationType,
