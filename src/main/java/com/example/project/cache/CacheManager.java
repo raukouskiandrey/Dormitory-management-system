@@ -6,19 +6,22 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Supplier;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @Component
 public class CacheManager {
+    private static final Logger logger = LoggerFactory.getLogger(CacheManager.class);
     private final Map<CacheKey, Object> storage = new HashMap<>();
 
     @SuppressWarnings("unchecked")
     public synchronized <T> T computeIfAbsent(CacheKey key, Supplier<T> supplier) {
         if (storage.containsKey(key)) {
-            System.out.println("--- [CACHE] Данные взяты из кэша (Key: " + key.methodName() + ") ---");
+            logger.info("--- [CACHE] Данные взяты из кэша (Key: {}) ---", key.methodName());
             return (T) storage.get(key);
         }
 
-        System.out.println("--- [DB] Данные взяты из БД (Key: " + key.methodName() + ") ---");
+        logger.info("--- [DB] Данные взяты из БД (Key: {}) ---", key.methodName());
         T result = supplier.get();
         storage.put(key, result);
         return result;
@@ -30,12 +33,12 @@ public class CacheManager {
         boolean removed = storage.keySet().removeIf(key -> classesList.contains(key.entityClass()));
 
         if (removed) {
-            System.out.println("--- [INVALIDATE] Кэш для сущностей " + classesList + " успешно очищен ---");
+            logger.info("--- [INVALIDATE] Кэш для сущностей {} успешно очищен ---", classesList);
         }
     }
 
     public synchronized void clearAll() {
         storage.clear();
-        System.out.println("--- [CACHE] Весь кэш полностью очищен ---");
+        logger.info("--- [CACHE] Весь кэш полностью очищен ---");
     }
 }

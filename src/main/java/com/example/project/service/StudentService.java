@@ -20,9 +20,6 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 
 @Service
 public class StudentService {
@@ -207,10 +204,8 @@ public class StudentService {
         return cacheManager.computeIfAbsent(cacheKey, () -> {
             Pageable pageable = PageRequest.of(page, size, Sort.by("id").ascending());
 
-            // Получаем страницу сущностей
             Page<Student> studentsPage = studentRepository.findStudentsWithFiltersJpql(chs, violationType, pageable);
 
-            // Превращаем Page<Student> в Page<StudentResponseDto> через маппер
             return studentsPage.map(studentMapper::toDto);
         });
     }
@@ -223,7 +218,6 @@ public class StudentService {
         return cacheManager.computeIfAbsent(cacheKey, () -> {
             Pageable pageable = PageRequest.of(page, size, Sort.by("id").ascending());
 
-            // Здесь репозиторий уже возвращает Page<StudentResponseDto> (проекцию), маппинг не нужен
             return studentRepository.findStudentsByComplexCriteriaNative(chs, violationType, pageable);
         });
     }
