@@ -207,30 +207,30 @@ public class StudentService {
     }
 
     public Page<StudentResponseDto> filterStudentsWithJpqlPaged(
-            Integer age, Integer chs, ViolationType violationType, int page, int size) {
+             Integer chs, ViolationType violationType, int page, int size) {
 
-        CacheKey cacheKey = buildCacheKey("filterStudentsWithJPQLPaged", age, chs, violationType, page, size);
+        CacheKey cacheKey = buildCacheKey("filterStudentsWithJPQLPaged", chs, violationType, page, size);
 
         return cacheManager.computeIfAbsent(cacheKey, () -> {
             Pageable pageable = PageRequest.of(page, size, Sort.by("id").ascending());
-            Page<Student> studentPage = studentRepository.findStudentsWithFiltersPaged(
-                    age, chs, violationType, pageable);
+            Page<StudentResponseDto> studentPage = studentRepository.findStudentsWithFiltersPaged(
+                     chs, violationType, pageable);
 
-            return studentPage.map(studentMapper::toDto);
+            return studentPage;
         });
     }
 
     public Page<StudentResponseDto> filterStudentsWithNativePaged(
-            Integer age, Integer chs, String violationType, int page, int size) {
+            Integer chs, String violationType, int page, int size) {
 
-        CacheKey cacheKey = buildCacheKey("filterStudentsWithNativePaged", age, chs, violationType, page, size);
+        CacheKey cacheKey = buildCacheKey("filterStudentsWithNativePaged", chs, violationType, page, size);
 
         return cacheManager.computeIfAbsent(cacheKey, () -> {
             Pageable pageable = PageRequest.of(page, size, Sort.by("id").ascending());
-            Page<Student> studentPage = studentRepository.findStudentsByComplexCriteriaNativePaged(
-                    age, chs, violationType, pageable);
+            Page<StudentResponseDto> studentPage = studentRepository.findStudentsByComplexCriteriaNativePaged(
+                     chs, violationType, pageable);
 
-            return studentPage.map(studentMapper::toDto);
+            return studentPage;
         });
     }
 

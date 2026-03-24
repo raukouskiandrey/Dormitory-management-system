@@ -1,6 +1,6 @@
 package com.example.project.cache;
 
-import java.util.Arrays; // Добавьте импорт
+import java.util.Arrays;
 import java.util.List;
 
 public record CacheKey(Class<?> entityClass, String methodName, List<Object> args) {

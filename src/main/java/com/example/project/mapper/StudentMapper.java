@@ -15,17 +15,18 @@ public interface StudentMapper {
     List<StudentResponseDto> toDtoList(List<Student> students);
 
     @Mapping(target = "violationIds", expression = "java(mapViolations(student.getViolations()))")
+    @Mapping(target = "roomNumber", source = "room.number")
+    @Mapping(target = "dormitoryId", source = "room.dormitory.id")
     StudentResponseDto toDto(Student student);
 
     Student toEntity(StudentRequestDto request);
 
-    // ИСПРАВЛЕНИЕ: возвращаем Long, чтобы соответствовать List<Long> в DTO
     default List<Long> mapViolations(java.util.Collection<Violation> violations) {
         if (violations == null) {
             return java.util.Collections.emptyList();
         }
         return violations.stream()
-                .map(v -> v.getId()) // Берем ID нарушения (Long), а не его тип (String)
+                .map(v -> v.getId())
                 .collect(java.util.stream.Collectors.toList());
     }
 }

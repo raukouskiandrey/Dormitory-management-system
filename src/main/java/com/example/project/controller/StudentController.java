@@ -127,24 +127,22 @@ public class StudentController {
 
     @GetMapping("/filter")
     public ResponseEntity<Page<StudentResponseDto>> filterStudentsPaged(
-            @RequestParam(required = false) Integer age,
             @RequestParam(required = false) Integer chs,
             @RequestParam(required = false) ViolationType violationType,
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size) {
+            @RequestParam int page,
+            @RequestParam int size) {
 
-        return ResponseEntity.ok(studentService.filterStudentsWithJpqlPaged(age, chs, violationType, page, size));
+        return ResponseEntity.ok(studentService.filterStudentsWithJpqlPaged(chs, violationType, page, size));
     }
 
     @GetMapping("/filter/native")
     public ResponseEntity<Page<StudentResponseDto>> filterNativeStudentsPaged(
-            @RequestParam(required = false) Integer age,
             @RequestParam(required = false) Integer chs,
             @RequestParam(required = false) String violationType,
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size) {
+            @RequestParam int page,
+            @RequestParam int size) {
 
-        return ResponseEntity.ok(studentService.filterStudentsWithNativePaged(age, chs, violationType, page, size));
+        return ResponseEntity.ok(studentService.filterStudentsWithNativePaged(chs, violationType, page, size));
     }
 
 }
