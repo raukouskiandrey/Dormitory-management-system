@@ -109,7 +109,7 @@ public class StudentController {
         try {
             StudentResponseDto newStudent = studentService.creationStudentNoTx(student);
             return new ResponseEntity<>(newStudent, HttpStatus.CREATED);
-        } catch (RuntimeException exception) {
+        } catch (RuntimeException _) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
@@ -120,7 +120,7 @@ public class StudentController {
         try {
             StudentResponseDto newStudent = studentService.creationStudentWithTx(student);
             return new ResponseEntity<>(newStudent, HttpStatus.CREATED);
-        } catch (RuntimeException exception) {
+        } catch (RuntimeException _) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }

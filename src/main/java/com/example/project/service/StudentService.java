@@ -207,16 +207,13 @@ public class StudentService {
     }
 
     public Page<StudentResponseDto> filterStudentsWithJpqlPaged(
-             Integer chs, ViolationType violationType, int page, int size) {
+            Integer chs, ViolationType violationType, int page, int size) {
 
         CacheKey cacheKey = buildCacheKey("filterStudentsWithJPQLPaged", chs, violationType, page, size);
 
         return cacheManager.computeIfAbsent(cacheKey, () -> {
             Pageable pageable = PageRequest.of(page, size, Sort.by("id").ascending());
-            Page<StudentResponseDto> studentPage = studentRepository.findStudentsWithFiltersPaged(
-                     chs, violationType, pageable);
-
-            return studentPage;
+            return studentRepository.findStudentsWithFiltersPaged(chs, violationType, pageable);
         });
     }
 
@@ -227,10 +224,7 @@ public class StudentService {
 
         return cacheManager.computeIfAbsent(cacheKey, () -> {
             Pageable pageable = PageRequest.of(page, size, Sort.by("id").ascending());
-            Page<StudentResponseDto> studentPage = studentRepository.findStudentsByComplexCriteriaNativePaged(
-                     chs, violationType, pageable);
-
-            return studentPage;
+            return studentRepository.findStudentsByComplexCriteriaNativePaged(chs, violationType, pageable);
         });
     }
 
