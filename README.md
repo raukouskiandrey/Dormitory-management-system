@@ -6,9 +6,9 @@
 
 * **Runtime:** Java 25
 * **Framework:** Spring Boot 4.0.2
-* **Maven
-* **Lombok
-* **PostgreSQL
+* **Maven**
+* **Lombok**
+* **PostgreSQL**
 
 ## Функциональные возможности
 
