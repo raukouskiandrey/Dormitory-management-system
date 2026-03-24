@@ -34,8 +34,10 @@ public class StudentController {
     }
 
     @GetMapping("/all")
-    public ResponseEntity<List<StudentResponseDto>> getStudents() {
-        return ok(studentService.findStudents());
+    public ResponseEntity<Page<StudentResponseDto>> getStudents(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
+        return ok(studentService.findStudentsPaged(page, size));
     }
 
     @GetMapping("/{id}")
@@ -43,20 +45,12 @@ public class StudentController {
         return ok(studentService.findStudentsById(id));
     }
 
-    @GetMapping("/room/{number}")
-    public ResponseEntity<List<StudentResponseDto>> getStudentsByRoom(@PathVariable int number) {
-        return ok(studentService.findStudentsByRoom(number));
-    }
-
     @GetMapping("")
-    public ResponseEntity<List<StudentResponseDto>> getStudentsByAge(@RequestParam int age) {
-        return ok(studentService.findStudentsByAge(age));
-    }
-
-    @GetMapping("/violation/{type}")
-    public ResponseEntity<List<StudentResponseDto>> getStudentsByViolation(
-            @PathVariable ViolationType type) {
-        return ok(studentService.findByViolationsViolationType(type));
+    public ResponseEntity<Page<StudentResponseDto>> getStudentsByAge(
+            @RequestParam int age,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
+        return ok(studentService.findStudentsByAgePaged(age, page, size));
     }
 
     @PostMapping("/{studentId}/assign-to-room/{roomId}")

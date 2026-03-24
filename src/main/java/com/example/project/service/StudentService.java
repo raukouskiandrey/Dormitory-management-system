@@ -45,24 +45,16 @@ public class StudentService {
         this.cacheManager = cacheManager;
     }
 
-    public List<StudentResponseDto> findStudentsByRoom(int number) {
-        List<Student> students = studentRepository.findByRoomNumber(number);
-        return studentMapper.toDtoList(students);
+    public Page<StudentResponseDto> findStudentsPaged(int page, int size) {
+        Pageable pageable = PageRequest.of(page, size, Sort.by("id").ascending());
+        return studentRepository.findAll(pageable)
+                .map(studentMapper::toDto);
     }
 
-    public List<StudentResponseDto> findStudentsByAge(int age) {
-        List<Student> students = studentRepository.findByAge(age);
-        return studentMapper.toDtoList(students);
-    }
-
-    public List<StudentResponseDto> findByViolationsViolationType(ViolationType type) {
-        List<Student> students = studentRepository.findByViolationsViolationType(type);
-        return studentMapper.toDtoList(students);
-    }
-
-    public List<StudentResponseDto> findStudents() {
-        List<Student> students = studentRepository.findAll();
-        return studentMapper.toDtoList(students);
+    public Page<StudentResponseDto> findStudentsByAgePaged(int age, int page, int size) {
+        Pageable pageable = PageRequest.of(page, size, Sort.by("id").ascending());
+        return studentRepository.findByAge(age, pageable)
+                .map(studentMapper::toDto);
     }
 
     public StudentResponseDto findStudentsById(Long id) {
@@ -213,7 +205,12 @@ public class StudentService {
 
         return cacheManager.computeIfAbsent(cacheKey, () -> {
             Pageable pageable = PageRequest.of(page, size, Sort.by("id").ascending());
-            return studentRepository.findStudentsWithFiltersPaged(chs, violationType, pageable);
+
+            // Получаем страницу сущностей
+            Page<Student> studentsPage = studentRepository.findStudentsWithFiltersJpql(chs, violationType, pageable);
+
+            // Превращаем Page<Student> в Page<StudentResponseDto> через маппер
+            return studentsPage.map(studentMapper::toDto);
         });
     }
 
@@ -224,7 +221,9 @@ public class StudentService {
 
         return cacheManager.computeIfAbsent(cacheKey, () -> {
             Pageable pageable = PageRequest.of(page, size, Sort.by("id").ascending());
-            return studentRepository.findStudentsByComplexCriteriaNativePaged(chs, violationType, pageable);
+
+            // Здесь репозиторий уже возвращает Page<StudentResponseDto> (проекцию), маппинг не нужен
+            return studentRepository.findStudentsByComplexCriteriaNative(chs, violationType, pageable);
         });
     }
 
