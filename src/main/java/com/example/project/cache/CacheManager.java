@@ -36,9 +36,5 @@ public class CacheManager {
             logger.info("--- [INVALIDATE] Кэш для сущностей {} успешно очищен ---", classesList);
         }
     }
-
-    public synchronized void clearAll() {
-        storage.clear();
-        logger.info("--- [CACHE] Весь кэш полностью очищен ---");
-    }
+    
 }
