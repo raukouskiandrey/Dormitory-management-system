@@ -1,5 +1,6 @@
 package com.example.project.repository;
 
+import com.example.project.dto.response.StudentFlatRow;
 import com.example.project.dto.response.StudentResponseDto;
 import com.example.project.model.Student;
 import com.example.project.model.ViolationType;
@@ -23,18 +24,35 @@ public interface StudentRepository extends JpaRepository<Student, Long> {
     @EntityGraph(attributePaths = {"violations", "room", "contract"})
     Student findStudentById(Long id);
 
-    @Query("""
-    SELECT s FROM Student s
-    WHERE (:chs IS NULL OR s.chs = :chs)
-    AND (:violationType IS NULL OR EXISTS (
-        SELECT 1 FROM s.violations v WHERE v.violationType = :violationType
-    ))
-    ORDER BY s.id""")
-    @EntityGraph(attributePaths = {"room", "contract"})
-    Page<Student> findStudentsWithFiltersJpql(
+    @Query(
+            value = """
+                SELECT new com.example.project.dto.response.StudentFlatRow(
+                    s.id, s.name, s.surname, s.patronymic,
+                    s.phoneNumber, s.age, s.chs,
+                    r.number, d.id, v.id
+                )
+                FROM Student s
+                LEFT JOIN s.room r
+                LEFT JOIN r.dormitory d
+                LEFT JOIN s.violations v
+                WHERE (:chs IS NULL OR s.chs = :chs)
+                AND (:violationType IS NULL OR v.violationType = :violationType)
+                ORDER BY s.id
+                """,
+            countQuery = """
+                SELECT COUNT(DISTINCT s.id)
+                FROM Student s
+                LEFT JOIN s.violations v
+                WHERE (:chs IS NULL OR s.chs = :chs)
+                AND (:violationType IS NULL OR v.violationType = :violationType)
+                """
+    )
+    Page<StudentFlatRow> findStudentsFlat(
             @Param("chs") Integer chs,
             @Param("violationType") ViolationType violationType,
-            Pageable pageable);
+            Pageable pageable
+    );
+
 
     @Query(value = "SELECT s.id as id, s.name as name, s.surname as surname, "
                 + "s.patronymic as patronymic, s.phone_number as phoneNumber, "

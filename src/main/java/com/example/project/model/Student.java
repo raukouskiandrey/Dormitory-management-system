@@ -64,6 +64,5 @@ public class Student {
             joinColumns = @JoinColumn(name = "student_id"),
             inverseJoinColumns = @JoinColumn(name = "violation_id")
     )
-    @BatchSize(size = 50)
     private Set<Violation> violations;
 }
