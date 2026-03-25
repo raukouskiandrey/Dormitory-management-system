@@ -3,8 +3,8 @@ package com.example.project.cache;
 import org.springframework.stereotype.Component;
 
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Supplier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -12,7 +12,7 @@ import org.slf4j.LoggerFactory;
 @Component
 public class CacheManager {
     private static final Logger logger = LoggerFactory.getLogger(CacheManager.class);
-    private final Map<CacheKey, Object> storage = new HashMap<>();
+    private final Map<CacheKey, Object> storage = new ConcurrentHashMap<>();
 
     @SuppressWarnings("unchecked")
     public synchronized <T> T computeIfAbsent(CacheKey key, Supplier<T> supplier) {
