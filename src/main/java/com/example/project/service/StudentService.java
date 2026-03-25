@@ -206,45 +206,47 @@ public class StudentService {
     public Page<StudentResponseDto> filterStudentsWithJpqlPaged(
             Integer chs, ViolationType violationType, int page, int size) {
 
-        Pageable pageable = PageRequest.of(page, size, Sort.by("id").ascending());
+        CacheKey cacheKey = buildCacheKey(chs, violationType, page, size);
 
-        Page<StudentFlatRow> rows =
-                studentRepository.findStudentsFlat(chs, violationType, pageable);
+        return cacheManager.computeIfAbsent(cacheKey, () -> {
+            Pageable pageable = PageRequest.of(page, size, Sort.by("id").ascending());
 
-        Map<Long, StudentResponseDto> map = new LinkedHashMap<>();
+            Page<StudentFlatRow> rows = studentRepository.findStudentsFlat(chs, violationType, pageable);
 
-        for (StudentFlatRow row : rows) {
+            Map<Long, StudentResponseDto> map = new LinkedHashMap<>();
 
-            map.computeIfAbsent(row.id(), id -> {
-                StudentResponseDto dto = new StudentResponseDto();
-                dto.setId(row.id());
-                dto.setName(row.name());
-                dto.setSurname(row.surname());
-                dto.setPatronymic(row.patronymic());
-                dto.setPhoneNumber(row.phoneNumber());
-                dto.setAge(row.age());
-                dto.setChs(row.chs());
-                dto.setRoomNumber(row.roomNumber());
-                dto.setDormitoryId(row.dormitoryId());
-                dto.setViolationIds("");
-                return dto;
-            });
+            for (StudentFlatRow row : rows) {
+                map.computeIfAbsent(row.id(), id -> {
+                    StudentResponseDto dto = new StudentResponseDto();
+                    dto.setId(row.id());
+                    dto.setName(row.name());
+                    dto.setSurname(row.surname());
+                    dto.setPatronymic(row.patronymic());
+                    dto.setPhoneNumber(row.phoneNumber());
+                    dto.setAge(row.age());
+                    dto.setChs(row.chs());
+                    dto.setRoomNumber(row.roomNumber());
+                    dto.setDormitoryId(row.dormitoryId());
+                    dto.setViolationIds("");
+                    return dto;
+                });
 
-            if (row.violationId() != null) {
-                StudentResponseDto dto = map.get(row.id());
-                if (dto.getViolationIds().isEmpty()) {
-                    dto.setViolationIds(row.violationId().toString());
-                } else {
-                    dto.setViolationIds(dto.getViolationIds() + ", " + row.violationId());
+                if (row.violationId() != null) {
+                    StudentResponseDto dto = map.get(row.id());
+                    if (dto.getViolationIds().isEmpty()) {
+                        dto.setViolationIds(row.violationId().toString());
+                    } else {
+                        dto.setViolationIds(dto.getViolationIds() + ", " + row.violationId());
+                    }
                 }
             }
-        }
 
-        return new PageImpl<>(
-                new ArrayList<>(map.values()),
-                pageable,
-                rows.getTotalElements()
-        );
+            return new PageImpl<>(
+                    new ArrayList<>(map.values()),
+                    pageable,
+                    rows.getTotalElements()
+            );
+        });
     }
 
 
