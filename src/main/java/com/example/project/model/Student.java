@@ -17,7 +17,6 @@ import lombok.Setter;
 import lombok.Builder;
 import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;
-import org.hibernate.annotations.BatchSize;
 
 import java.util.Set;
 
