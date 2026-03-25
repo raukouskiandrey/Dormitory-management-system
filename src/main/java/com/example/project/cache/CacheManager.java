@@ -36,5 +36,4 @@ public class CacheManager {
             logger.info("--- [INVALIDATE] Кэш для сущностей {} успешно очищен ---", classesList);
         }
     }
-    
 }
