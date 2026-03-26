@@ -47,8 +47,7 @@ public interface StudentRepository extends JpaRepository<Student, Long> {
                 + "LEFT JOIN violations v ON sv.violation_id = v.id "
                 + "WHERE (:chs IS NULL OR s.chs = :chs) "
                 + "AND (:violationType IS NULL OR v.violation_type = CAST(:violationType AS varchar)) "
-                + "GROUP BY s.id, s.name, s.surname, s.patronymic, s.phone_number, s.age, s.chs, r.number, d.id "
-                + "ORDER BY s.id",
+                + "GROUP BY s.id, s.name, s.surname, s.patronymic, s.phone_number, s.age, s.chs, r.number, d.id ",
                 countQuery = "SELECT COUNT(*) FROM students s",
                 nativeQuery = true)
         Page<StudentResponseDto> findStudentsByComplexCriteriaNative(
