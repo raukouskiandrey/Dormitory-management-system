@@ -15,7 +15,7 @@ public class CacheManager {
     private final Map<CacheKey, Object> storage = new ConcurrentHashMap<>();
 
     @SuppressWarnings("unchecked")
-    public synchronized <T> T computeIfAbsent(CacheKey key, Supplier<T> supplier) {
+    public <T> T computeIfAbsent(CacheKey key, Supplier<T> supplier) {
         if (storage.containsKey(key)) {
             logger.info("--- [CACHE] Данные взяты из кэша (Key: {}) ---", key.methodName());
             return (T) storage.get(key);
@@ -27,7 +27,7 @@ public class CacheManager {
         return result;
     }
 
-    public synchronized void invalidate(Class<?>... entityClasses) {
+    public void invalidate(Class<?>... entityClasses) {
         var classesList = Arrays.asList(entityClasses);
 
         boolean removed = storage.keySet().removeIf(key -> classesList.contains(key.entityClass()));

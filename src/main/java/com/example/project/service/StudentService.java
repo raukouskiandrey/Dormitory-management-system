@@ -202,7 +202,8 @@ public class StudentService {
 
         return cacheManager.computeIfAbsent(cacheKey, () -> {
             Pageable pageable = PageRequest.of(page, size, Sort.by("id").ascending());
-            Page<Student> studentPage = studentRepository.findStudentsByComplexCriteriaJpql(chs, violationType, pageable);
+            Page<Student> studentPage = studentRepository.findStudentsByComplexCriteriaJpql(chs,
+                    violationType, pageable);
             return studentPage.map(studentMapper::toDto);
         });
     }
