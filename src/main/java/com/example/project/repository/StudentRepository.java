@@ -1,6 +1,5 @@
 package com.example.project.repository;
 
-import com.example.project.dto.response.StudentFlatRow;
 import com.example.project.dto.response.StudentResponseDto;
 import com.example.project.model.Student;
 import com.example.project.model.ViolationType;
@@ -24,35 +23,18 @@ public interface StudentRepository extends JpaRepository<Student, Long> {
     @EntityGraph(attributePaths = {"violations", "room", "contract"})
     Student findStudentById(Long id);
 
-    @Query(
-            value = """
-                SELECT new com.example.project.dto.response.StudentFlatRow(
-                    s.id, s.name, s.surname, s.patronymic,
-                    s.phoneNumber, s.age, s.chs,
-                    r.number, d.id, v.id
-                )
-                FROM Student s
-                LEFT JOIN s.room r
-                LEFT JOIN r.dormitory d
-                LEFT JOIN s.violations v
-                WHERE (:chs IS NULL OR s.chs = :chs)
-                AND (:violationType IS NULL OR v.violationType = :violationType)
-                ORDER BY s.id
-                """,
-            countQuery = """
-                SELECT COUNT(DISTINCT s.id)
-                FROM Student s
-                LEFT JOIN s.violations v
-                WHERE (:chs IS NULL OR s.chs = :chs)
-                AND (:violationType IS NULL OR v.violationType = :violationType)
-                """
-    )
-    Page<StudentFlatRow> findStudentsFlat(
+    @Query("SELECT DISTINCT s FROM Student s "
+            + "LEFT JOIN FETCH s.room r "
+            + "LEFT JOIN FETCH r.dormitory d "
+            + "LEFT JOIN FETCH s.contract c "
+            + "LEFT JOIN FETCH s.violations v "
+            + "WHERE (:chs IS NULL OR s.chs = :chs) "
+            + "AND (:violationType IS NULL OR v.violationType = :violationType)")
+    Page<Student> findStudentsByComplexCriteriaJpql(
             @Param("chs") Integer chs,
             @Param("violationType") ViolationType violationType,
             Pageable pageable
     );
-
 
     @Query(value = "SELECT s.id as id, s.name as name, s.surname as surname, "
                 + "s.patronymic as patronymic, s.phone_number as phoneNumber, "

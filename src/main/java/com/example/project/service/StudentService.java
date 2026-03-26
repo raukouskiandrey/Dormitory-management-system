@@ -20,13 +20,6 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
-import com.example.project.dto.response.StudentFlatRow;
-import java.util.Map;
-import java.util.LinkedHashMap;
-import java.util.ArrayList;
-
-import org.springframework.data.domain.PageImpl;
-
 
 @Service
 public class StudentService {
@@ -205,50 +198,14 @@ public class StudentService {
 
     public Page<StudentResponseDto> filterStudentsWithJpqlPaged(
             Integer chs, ViolationType violationType, int page, int size) {
-
         CacheKey cacheKey = buildCacheKey(chs, violationType, page, size);
 
         return cacheManager.computeIfAbsent(cacheKey, () -> {
             Pageable pageable = PageRequest.of(page, size, Sort.by("id").ascending());
-
-            Page<StudentFlatRow> rows = studentRepository.findStudentsFlat(chs, violationType, pageable);
-
-            Map<Long, StudentResponseDto> map = new LinkedHashMap<>();
-
-            for (StudentFlatRow row : rows) {
-                map.computeIfAbsent(row.id(), id -> {
-                    StudentResponseDto dto = new StudentResponseDto();
-                    dto.setId(row.id());
-                    dto.setName(row.name());
-                    dto.setSurname(row.surname());
-                    dto.setPatronymic(row.patronymic());
-                    dto.setPhoneNumber(row.phoneNumber());
-                    dto.setAge(row.age());
-                    dto.setChs(row.chs());
-                    dto.setRoomNumber(row.roomNumber());
-                    dto.setDormitoryId(row.dormitoryId());
-                    dto.setViolationIds("");
-                    return dto;
-                });
-
-                if (row.violationId() != null) {
-                    StudentResponseDto dto = map.get(row.id());
-                    if (dto.getViolationIds().isEmpty()) {
-                        dto.setViolationIds(row.violationId().toString());
-                    } else {
-                        dto.setViolationIds(dto.getViolationIds() + ", " + row.violationId());
-                    }
-                }
-            }
-
-            return new PageImpl<>(
-                    new ArrayList<>(map.values()),
-                    pageable,
-                    rows.getTotalElements()
-            );
+            Page<Student> studentPage = studentRepository.findStudentsByComplexCriteriaJpql(chs, violationType, pageable);
+            return studentPage.map(studentMapper::toDto);
         });
     }
-
 
     public Page<StudentResponseDto> filterStudentsWithNativePaged(
             Integer chs, String violationType, int page, int size) {

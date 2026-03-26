@@ -21,8 +21,8 @@ public class CacheManager {
             return (T) storage.get(key);
         }
 
-        logger.info("--- [DB] Данные взяты из БД (Key: {}) ---", key.methodName());
         T result = supplier.get();
+        logger.info("--- [DB] Данные взяты из БД (Key: {}) ---", key.methodName());
         storage.put(key, result);
         return result;
     }
