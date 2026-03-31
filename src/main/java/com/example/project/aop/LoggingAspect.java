@@ -45,7 +45,7 @@ public class LoggingAspect {
 
         StopWatch stopWatch = new StopWatch();
         stopWatch.start();
-        
+
         if (LOGGER.isInfoEnabled()) {
             LOGGER.info(">>> Вход: {} Метод: {} | Аргументы: {}",
                     requestContext, fullMethodName, safeArgs(joinPoint.getArgs()));

@@ -33,6 +33,7 @@ public class StudentService {
     private final ContractRepository contractRepository;
     private final CacheManager cacheManager;
     private final ViolationService violationService;
+    private static final String STUDENT_NOT_FOUND = "Students not found with id: ";
 
     public StudentService(StudentMapper studentMapper,
                           StudentRepository studentRepository,
@@ -64,25 +65,25 @@ public class StudentService {
 
     public StudentResponseDto findStudentsById(Long id) {
         Student students = studentRepository.findStudentById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Students not found with id: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException(STUDENT_NOT_FOUND + id));
         return studentMapper.toDto(students);
     }
 
     public Student findStudentEntityById(Long id) {
         return studentRepository.findStudentById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Students not found with id: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException(STUDENT_NOT_FOUND + id));
     }
 
     public void deleteStudentById(Long id) {
         Student student = studentRepository.findStudentById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Student not found with id: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException(STUDENT_NOT_FOUND + id));
         studentRepository.delete(student);
         cacheManager.invalidate(Student.class);
     }
 
     public StudentResponseDto assignStudentToRoom(Long studentId, Long roomId) {
         Student student = studentRepository.findStudentById(studentId)
-                .orElseThrow(() -> new ResourceNotFoundException("Students not found with id: " + studentId));
+                .orElseThrow(() -> new ResourceNotFoundException(STUDENT_NOT_FOUND + studentId));
         Room room = roomService.findRoomEntityById(roomId);
 
         if (student.getRoom() != null) {
@@ -98,7 +99,7 @@ public class StudentService {
 
     public StudentResponseDto addViolationToStudent(Long studentId, Long violationId) {
         Student student = studentRepository.findStudentById(studentId)
-                .orElseThrow(() -> new ResourceNotFoundException("Students not found with id: " + studentId));
+                .orElseThrow(() -> new ResourceNotFoundException(STUDENT_NOT_FOUND + studentId));
         Violation violation = violationService.findViolationById(violationId);
 
         if (student.getViolations().contains(violation)) {
@@ -130,7 +131,7 @@ public class StudentService {
 
     public StudentResponseDto updateStudent(Long id, StudentRequestDto studentUpdates) {
         Student student = studentRepository.findStudentById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Students not found with id: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException(STUDENT_NOT_FOUND + id));
 
         if (studentUpdates.getAge() != null && (studentUpdates.getAge() < 16 || studentUpdates.getAge() > 100)) {
             throw new BadRequestException("Возраст студента должен быть в диапазоне от 16 до 100 лет");
@@ -149,7 +150,7 @@ public class StudentService {
 
     public StudentResponseDto updatePatchStudent(Long id, StudentRequestDto studentUpdates) {
         Student student = studentRepository.findStudentById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Students not found with id: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException(STUDENT_NOT_FOUND + id));
 
         if (studentUpdates.getAge() != null && (studentUpdates.getAge() < 16 || studentUpdates.getAge() > 100)) {
             throw new BadRequestException("Возраст студента должен быть в диапазоне от 16 до 100 лет");
