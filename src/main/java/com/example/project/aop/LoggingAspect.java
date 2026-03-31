@@ -81,11 +81,11 @@ public class LoggingAspect {
     private String safeArgs(Object[] args) {
         try {
             return Arrays.toString(args);
-        } catch (Exception ex) {
+        } catch (Exception _) {
             return "[unavailable]";
         }
     }
-
+    
     private void logPerformance(String methodName, long time) {
         if (time > VERY_SLOW_THRESHOLD_MS) {
             LOGGER.warn("<<< {} за {} ms (ОЧЕНЬ МЕДЛЕННО)", methodName, time);
