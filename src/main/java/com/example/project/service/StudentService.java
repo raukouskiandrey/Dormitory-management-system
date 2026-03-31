@@ -15,7 +15,6 @@ import com.example.project.model.Violation;
 import com.example.project.mapper.StudentMapper;
 import com.example.project.repository.ContractRepository;
 import com.example.project.repository.StudentRepository;
-import com.example.project.repository.ViolationRepository;
 import jakarta.transaction.Transactional;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
