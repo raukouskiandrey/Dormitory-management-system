@@ -19,6 +19,7 @@ public class ContractService {
     private final StudentService studentService;
     public final ContractRepository contractRepository;
     public final ContractMapper contractMapper;
+    private static final String CONTRACT_NOT_FOUND = "Contracts not found with id: ";
 
     public ContractService(ContractRepository contractRepository,
                            ContractMapper contractMapper,
@@ -47,7 +48,7 @@ public class ContractService {
 
     public ContractResponseDto updateContract(Long id, ContractRequestDto updatedContract) {
         Contract contract = contractRepository.findContractById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Contracts not found with id: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException(CONTRACT_NOT_FOUND + id));
 
         validateDates(updatedContract.getStartDate(),updatedContract.getEndDate());
 
@@ -60,7 +61,7 @@ public class ContractService {
 
     public ContractResponseDto updatePatchContract(Long id, ContractRequestDto updatedContract) {
         Contract contract = contractRepository.findContractById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Contracts not found with id: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException(CONTRACT_NOT_FOUND + id));
 
         if (updatedContract.getNumber() != null) {
             contract.setNumber(updatedContract.getNumber());
@@ -80,13 +81,13 @@ public class ContractService {
 
     public void deleteContractById(Long id) {
         Contract contract = contractRepository.findContractById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Contracts not found with id: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException(CONTRACT_NOT_FOUND + id));
         contractRepository.delete(contract);
     }
 
     public ContractResponseDto findContactById(Long id) {
         Contract contract = contractRepository.findContractById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Contracts not found with id: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException(CONTRACT_NOT_FOUND + id));
         return contractMapper.toDto(contract);
     }
 

@@ -17,6 +17,7 @@ public class RoomService {
     private final DormitoryService dormitoryService;
     public final RoomRepository roomRepository;
     public final RoomMapper roomMapper;
+    private static final String ROOM_NOT_FOUND = "Rooms not found with id: ";
 
     public RoomService(RoomRepository roomRepository, RoomMapper roomMapper, DormitoryService dormitoryService) {
         this.roomRepository = roomRepository;
@@ -36,12 +37,12 @@ public class RoomService {
 
     public Room findRoomEntityById(Long id) {
         return roomRepository.findRoomById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Rooms not found with id: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException(ROOM_NOT_FOUND + id));
     }
 
     public void deleteRoomById(Long id) {
         Room room = roomRepository.findRoomById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Rooms not found with id: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException(ROOM_NOT_FOUND + id));
         roomRepository.delete(room);
     }
 
@@ -61,7 +62,7 @@ public class RoomService {
 
     public RoomResponseDto updateRoom(Long id, RoomRequestDto roomUpdates) {
         Room room = roomRepository.findRoomById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Rooms not found with id: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException(ROOM_NOT_FOUND + id));
 
         if (!room.getNumber().equals(roomUpdates.getNumber())
                 && roomRepository.existsByNumberAndDormitoryId(
@@ -79,7 +80,7 @@ public class RoomService {
 
     public RoomResponseDto updatePatchRoom(Long id, RoomRequestDto roomUpdates) {
         Room room = roomRepository.findRoomById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Rooms not found with id: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException(ROOM_NOT_FOUND + id));
         Integer oldNumber = room.getNumber();
 
         if (roomUpdates.getNumber() != null) {

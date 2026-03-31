@@ -16,6 +16,7 @@ public class DormitoryService {
 
     public final DormitoryMapper dormitoryMapper;
     public final DormitoryRepository dormitoryRepository;
+    private static final String DORMITORY_NOT_FOUND = "Dormitory not found with id: ";
 
     public DormitoryService(DormitoryRepository dormitoryRepository, DormitoryMapper dormitoryMapper) {
         this.dormitoryRepository = dormitoryRepository;
@@ -34,7 +35,7 @@ public class DormitoryService {
 
     public Dormitory findDormitoryEntityById(Long id) {
         return dormitoryRepository.findDormitoryById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Dormitory not found with id: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException(DORMITORY_NOT_FOUND + id));
     }
 
     public DormitoryResponseDto createDormitory(DormitoryRequestDto request) {
@@ -48,7 +49,7 @@ public class DormitoryService {
 
     public DormitoryResponseDto updateDormitory(Long id, DormitoryRequestDto updatedDormitory) {
         Dormitory dormitory = dormitoryRepository.findDormitoryById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Dormitory not found with id: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException(DORMITORY_NOT_FOUND + id));
 
         if ((!dormitory.getName().equals(updatedDormitory.getName())
                 || !dormitory.getAddress().equals(updatedDormitory.getAddress()))
@@ -67,7 +68,7 @@ public class DormitoryService {
 
     public DormitoryResponseDto updatePatchDormitory(Long id, DormitoryRequestDto updatedDormitory) {
         Dormitory dormitory = dormitoryRepository.findDormitoryById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Dormitory not found with id: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException(DORMITORY_NOT_FOUND + id));
 
         String oldName = dormitory.getName();
         String oldAddress = dormitory.getAddress();
@@ -91,7 +92,7 @@ public class DormitoryService {
 
     public void deleteDormitoryById(Long id) {
         Dormitory dormitory = dormitoryRepository.findDormitoryById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Dormitory not found with id: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException(DORMITORY_NOT_FOUND + id));
         dormitoryRepository.delete(dormitory);
     }
 }
