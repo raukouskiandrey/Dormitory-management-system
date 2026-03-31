@@ -45,9 +45,11 @@ public class LoggingAspect {
 
         StopWatch stopWatch = new StopWatch();
         stopWatch.start();
-
-        LOGGER.info(">>> Вход: {} Метод: {} | Аргументы: {}",
-                requestContext, fullMethodName, Arrays.toString(joinPoint.getArgs()));
+        
+        if (LOGGER.isInfoEnabled()) {
+            LOGGER.info(">>> Вход: {} Метод: {} | Аргументы: {}",
+                    requestContext, fullMethodName, safeArgs(joinPoint.getArgs()));
+        }
 
         try {
             Object result = joinPoint.proceed();
@@ -73,6 +75,14 @@ public class LoggingAspect {
             LOGGER.error("!!! Критическая ошибка в {}: {} | Тип: {}",
                     fullMethodName, throwable.getMessage(), throwable.getClass().getName());
             throw throwable;
+        }
+    }
+
+    private String safeArgs(Object[] args) {
+        try {
+            return Arrays.toString(args);
+        } catch (Exception ex) {
+            return "[unavailable]";
         }
     }
 
