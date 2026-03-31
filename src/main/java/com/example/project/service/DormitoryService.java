@@ -5,12 +5,8 @@ import com.example.project.dto.response.DormitoryResponseDto;
 import com.example.project.exception.BadRequestException;
 import com.example.project.exception.ResourceNotFoundException;
 import com.example.project.mapper.DormitoryMapper;
-import com.example.project.mapper.RoomMapper;
-import com.example.project.model.Contract;
 import com.example.project.model.Dormitory;
-import com.example.project.model.Student;
 import com.example.project.repository.DormitoryRepository;
-import com.example.project.repository.RoomRepository;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -54,13 +50,14 @@ public class DormitoryService {
         Dormitory dormitory = dormitoryRepository.findDormitoryById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Dormitory not found with id: " + id));
 
-        if (!dormitory.getName().equals(updatedDormitory.getName())
-                || !dormitory.getAddress().equals(updatedDormitory.getAddress())) {
+        if ((!dormitory.getName().equals(updatedDormitory.getName())
+                || !dormitory.getAddress().equals(updatedDormitory.getAddress()))
+                && dormitoryRepository.existsByNameAndAddress(
+                        updatedDormitory.getName(), updatedDormitory.getAddress())) {
 
-            if (dormitoryRepository.existsByNameAndAddress(updatedDormitory.getName(), updatedDormitory.getAddress())) {
-                throw new BadRequestException("Общежитие с таким названием по этому адресу уже существует");
-            }
+            throw new BadRequestException("Общежитие с таким названием по этому адресу уже существует");
         }
+
 
         dormitory.setName(updatedDormitory.getName());
         dormitory.setAddress(updatedDormitory.getAddress());

@@ -72,8 +72,7 @@ public class LoggingAspect {
             if (stopWatch.isRunning()) {
                 stopWatch.stop();
             }
-            LOGGER.error("!!! Критическая ошибка в {}: {} | Тип: {}",
-                    fullMethodName, throwable.getMessage(), throwable.getClass().getName());
+            LOGGER.error("!!! Критическая ошибка в {}: {}", fullMethodName, throwable.getMessage());
             throw throwable;
         }
     }

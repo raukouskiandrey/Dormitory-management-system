@@ -48,7 +48,7 @@ public class RoomService {
     public RoomResponseDto createRoom(Long dormitoryId, RoomRequestDto request) {
         Dormitory dormitory = dormitoryService.findDormitoryEntityById(dormitoryId);
         if (roomRepository.existsByNumberAndDormitoryId(request.getNumber(), dormitoryId)) {
-            throw new BadRequestException("Комната с номером " + request.getNumber() + " уже существует в этом общежитии");
+            throw new BadRequestException("Комната номер " + request.getNumber() + " уже существует в этом общежитии");
         }
 
         validateRoomData(request.getNumber(), request.getTotalPlaces());
@@ -63,11 +63,13 @@ public class RoomService {
         Room room = roomRepository.findRoomById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Rooms not found with id: " + id));
 
-        if (!room.getNumber().equals(roomUpdates.getNumber())) {
-            if (roomRepository.existsByNumberAndDormitoryId(roomUpdates.getNumber(), room.getDormitory().getId())) {
-                throw new BadRequestException("Номер комнаты " + roomUpdates.getNumber() + " уже занят в этом общежитии");
-            }
+        if (!room.getNumber().equals(roomUpdates.getNumber())
+                && roomRepository.existsByNumberAndDormitoryId(
+                        roomUpdates.getNumber(), room.getDormitory().getId())) {
+
+            throw new BadRequestException("Номер комнаты " + roomUpdates.getNumber() + " уже занят в этом общежитии");
         }
+
         validateRoomData(roomUpdates.getNumber(), roomUpdates.getTotalPlaces());
         room.setNumber(roomUpdates.getNumber());
         room.setTotalPlaces(roomUpdates.getTotalPlaces());
@@ -88,11 +90,12 @@ public class RoomService {
             room.setTotalPlaces(roomUpdates.getTotalPlaces());
         }
 
-        if (!oldNumber.equals(room.getNumber())) {
-            if (roomRepository.existsByNumberAndDormitoryId(room.getNumber(), room.getDormitory().getId())) {
-                throw new BadRequestException("Номер комнаты " + room.getNumber() + " уже занят в этом общежитии");
-            }
+        if (!oldNumber.equals(room.getNumber())
+                && roomRepository.existsByNumberAndDormitoryId(room.getNumber(), room.getDormitory().getId())) {
+
+            throw new BadRequestException("Номер комнаты " + room.getNumber() + " уже занят в этом общежитии");
         }
+
         validateRoomData(room.getNumber(), room.getTotalPlaces());
         roomRepository.save(room);
         return roomMapper.toDto(room);
