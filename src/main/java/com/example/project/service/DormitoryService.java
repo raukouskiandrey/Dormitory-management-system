@@ -80,11 +80,12 @@ public class DormitoryService {
             dormitory.setAddress(updatedDormitory.getAddress());
         }
 
-        if (!oldName.equals(dormitory.getName()) || !oldAddress.equals(dormitory.getAddress())) {
-            if (dormitoryRepository.existsByNameAndAddress(dormitory.getName(), dormitory.getAddress())) {
-                throw new BadRequestException("Общежитие с таким названием по этому адресу уже существует");
-            }
+        if ((!oldName.equals(dormitory.getName()) || !oldAddress.equals(dormitory.getAddress()))
+                && dormitoryRepository.existsByNameAndAddress(dormitory.getName(), dormitory.getAddress())) {
+
+            throw new BadRequestException("Общежитие с таким названием по этому адресу уже существует");
         }
+
 
         dormitoryRepository.save(dormitory);
         return dormitoryMapper.toDto(dormitory);
