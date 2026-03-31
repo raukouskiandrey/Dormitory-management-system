@@ -20,7 +20,7 @@ public class StudentCreationDto {
 
     @Schema(description = "Контактный номер телефона", example = "+79991234567")
     @NotBlank(message = "Номер телефона обязателен")
-    @Pattern(regexp = "^\\+?[0-9]{10,15}$", message = "Неверный формат номера телефона")
+    @Pattern(regexp = "^\\+?\\d{10,15}$", message = "Неверный формат номера телефона")
     private String phoneNumber;
 
     @Schema(description = "Возраст студента", example = "19")
