@@ -2,6 +2,8 @@ package com.example.project.service;
 
 import com.example.project.dto.request.DormitoryRequestDto;
 import com.example.project.dto.response.DormitoryResponseDto;
+import com.example.project.exception.BadRequestException;
+import com.example.project.exception.ResourceNotFoundException;
 import com.example.project.mapper.DormitoryMapper;
 import com.example.project.mapper.RoomMapper;
 import com.example.project.model.Contract;
@@ -35,17 +37,30 @@ public class DormitoryService {
     }
 
     public Dormitory findDormitoryEntityById(Long id) {
-        return dormitoryRepository.findDormitoryById(id);
+        return dormitoryRepository.findDormitoryById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Dormitory not found with id: " + id));
     }
 
     public DormitoryResponseDto createDormitory(DormitoryRequestDto request) {
         Dormitory dormitory = dormitoryMapper.toEntity(request);
+        if (dormitoryRepository.existsByNameAndAddress(request.getName(), request.getAddress())) {
+            throw new BadRequestException("Общежитие с таким названием по этому адресу уже существует");
+        }
         dormitoryRepository.save(dormitory);
         return dormitoryMapper.toDto(dormitory);
     }
 
     public DormitoryResponseDto updateDormitory(Long id, DormitoryRequestDto updatedDormitory) {
-        Dormitory dormitory = dormitoryRepository.findDormitoryById(id);
+        Dormitory dormitory = dormitoryRepository.findDormitoryById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Dormitory not found with id: " + id));
+
+        if (!dormitory.getName().equals(updatedDormitory.getName())
+                || !dormitory.getAddress().equals(updatedDormitory.getAddress())) {
+
+            if (dormitoryRepository.existsByNameAndAddress(updatedDormitory.getName(), updatedDormitory.getAddress())) {
+                throw new BadRequestException("Общежитие с таким названием по этому адресу уже существует");
+            }
+        }
 
         dormitory.setName(updatedDormitory.getName());
         dormitory.setAddress(updatedDormitory.getAddress());
@@ -54,14 +69,23 @@ public class DormitoryService {
     }
 
     public DormitoryResponseDto updatePatchDormitory(Long id, DormitoryRequestDto updatedDormitory) {
-        Dormitory dormitory = dormitoryRepository.findDormitoryById(id);
+        Dormitory dormitory = dormitoryRepository.findDormitoryById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Dormitory not found with id: " + id));
+
+        String oldName = dormitory.getName();
+        String oldAddress = dormitory.getAddress();
 
         if (updatedDormitory.getName() != null) {
             dormitory.setName(updatedDormitory.getName());
         }
-
         if (updatedDormitory.getAddress() != null) {
             dormitory.setAddress(updatedDormitory.getAddress());
+        }
+
+        if (!oldName.equals(dormitory.getName()) || !oldAddress.equals(dormitory.getAddress())) {
+            if (dormitoryRepository.existsByNameAndAddress(dormitory.getName(), dormitory.getAddress())) {
+                throw new BadRequestException("Общежитие с таким названием по этому адресу уже существует");
+            }
         }
 
         dormitoryRepository.save(dormitory);
@@ -69,6 +93,8 @@ public class DormitoryService {
     }
 
     public void deleteDormitoryById(Long id) {
-        dormitoryRepository.deleteById(id);
+        Dormitory dormitory = dormitoryRepository.findDormitoryById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Dormitory not found with id: " + id));
+        dormitoryRepository.delete(dormitory);
     }
 }

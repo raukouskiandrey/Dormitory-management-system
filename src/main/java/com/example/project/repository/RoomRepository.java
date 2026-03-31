@@ -7,6 +7,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface RoomRepository extends JpaRepository<Room, Long> {
@@ -15,5 +16,6 @@ public interface RoomRepository extends JpaRepository<Room, Long> {
     @EntityGraph(attributePaths = {"students", "students.violations"})
     List<Room> findAllWithGraph();
 
-    Room findRoomById(Long id);
+    Optional<Room> findRoomById(Long id);
+    boolean existsByNumberAndDormitoryId(Integer number,Long dormitoryId);
 }

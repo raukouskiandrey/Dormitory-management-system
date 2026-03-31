@@ -7,6 +7,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface DormitoryRepository extends JpaRepository<Dormitory, Long> {
@@ -17,5 +18,6 @@ public interface DormitoryRepository extends JpaRepository<Dormitory, Long> {
 
     List<Dormitory> findAll();
 
-    Dormitory findDormitoryById(Long id);
+    Optional<Dormitory> findDormitoryById(Long id);
+    boolean existsByNameAndAddress(String name,String addres);
 }

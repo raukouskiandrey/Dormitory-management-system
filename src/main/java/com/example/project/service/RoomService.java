@@ -2,6 +2,8 @@ package com.example.project.service;
 
 import com.example.project.dto.request.RoomRequestDto;
 import com.example.project.dto.response.RoomResponseDto;
+import com.example.project.exception.BadRequestException;
+import com.example.project.exception.ResourceNotFoundException;
 import com.example.project.mapper.RoomMapper;
 import com.example.project.model.Dormitory;
 import com.example.project.model.Room;
@@ -33,17 +35,24 @@ public class RoomService {
     }
 
     public Room findRoomEntityById(Long id) {
-        return roomRepository.findRoomById(id);
+        return roomRepository.findRoomById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Rooms not found with id: " + id));
     }
 
     public void deleteRoomById(Long id) {
-        roomRepository.deleteById(id);
+        Room room = roomRepository.findRoomById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Rooms not found with id: " + id));
+        roomRepository.delete(room);
     }
 
     public RoomResponseDto createRoom(Long dormitoryId, RoomRequestDto request) {
         Dormitory dormitory = dormitoryService.findDormitoryEntityById(dormitoryId);
-        Room room = roomMapper.toEntity(request);
+        if (roomRepository.existsByNumberAndDormitoryId(request.getNumber(), dormitoryId)) {
+            throw new BadRequestException("Комната с номером " + request.getNumber() + " уже существует в этом общежитии");
+        }
 
+        validateRoomData(request.getNumber(), request.getTotalPlaces());
+        Room room = roomMapper.toEntity(request);
         room.setDormitory(dormitory);
         dormitory.getRooms().add(room);
         roomRepository.save(room);
@@ -51,8 +60,15 @@ public class RoomService {
     }
 
     public RoomResponseDto updateRoom(Long id, RoomRequestDto roomUpdates) {
-        Room room = roomRepository.findRoomById(id);
+        Room room = roomRepository.findRoomById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Rooms not found with id: " + id));
 
+        if (!room.getNumber().equals(roomUpdates.getNumber())) {
+            if (roomRepository.existsByNumberAndDormitoryId(roomUpdates.getNumber(), room.getDormitory().getId())) {
+                throw new BadRequestException("Номер комнаты " + roomUpdates.getNumber() + " уже занят в этом общежитии");
+            }
+        }
+        validateRoomData(roomUpdates.getNumber(), roomUpdates.getTotalPlaces());
         room.setNumber(roomUpdates.getNumber());
         room.setTotalPlaces(roomUpdates.getTotalPlaces());
         roomRepository.save(room);
@@ -60,7 +76,9 @@ public class RoomService {
     }
 
     public RoomResponseDto updatePatchRoom(Long id, RoomRequestDto roomUpdates) {
-        Room room = roomRepository.findRoomById(id);
+        Room room = roomRepository.findRoomById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Rooms not found with id: " + id));
+        Integer oldNumber = room.getNumber();
 
         if (roomUpdates.getNumber() != null) {
             room.setNumber(roomUpdates.getNumber());
@@ -70,7 +88,23 @@ public class RoomService {
             room.setTotalPlaces(roomUpdates.getTotalPlaces());
         }
 
+        if (!oldNumber.equals(room.getNumber())) {
+            if (roomRepository.existsByNumberAndDormitoryId(room.getNumber(), room.getDormitory().getId())) {
+                throw new BadRequestException("Номер комнаты " + room.getNumber() + " уже занят в этом общежитии");
+            }
+        }
+        validateRoomData(room.getNumber(), room.getTotalPlaces());
         roomRepository.save(room);
         return roomMapper.toDto(room);
+    }
+
+    private void validateRoomData(Integer number, Integer totalPlaces) {
+        if (number != null && number <= 0) {
+            throw new BadRequestException("Номер комнаты должен быть положительным числом");
+        }
+
+        if (totalPlaces != null && (totalPlaces < 1 || totalPlaces > 6)) {
+            throw new BadRequestException("Количество мест в комнате должно быть от 1 до 6");
+        }
     }
 }

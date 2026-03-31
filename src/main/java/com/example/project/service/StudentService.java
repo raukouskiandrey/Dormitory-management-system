@@ -5,6 +5,8 @@ import com.example.project.cache.CacheManager;
 import com.example.project.dto.request.StudentCreationDto;
 import com.example.project.dto.request.StudentRequestDto;
 import com.example.project.dto.response.StudentResponseDto;
+import com.example.project.exception.BadRequestException;
+import com.example.project.exception.ResourceNotFoundException;
 import com.example.project.model.Contract;
 import com.example.project.model.Room;
 import com.example.project.model.Student;
@@ -21,26 +23,28 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
+
 @Service
 public class StudentService {
     private final StudentMapper studentMapper;
     private final StudentRepository studentRepository;
     private final RoomService roomService;
     private final ContractRepository contractRepository;
-    private final ViolationRepository violationRepository;
     private final CacheManager cacheManager;
+    private final ViolationService violationService;
 
     public StudentService(StudentMapper studentMapper,
                           StudentRepository studentRepository,
                           RoomService roomService,
                           ContractRepository contractRepository,
-                          ViolationRepository violationRepository, CacheManager cacheManager) {
+                          CacheManager cacheManager, ViolationService violationService) {
         this.studentMapper = studentMapper;
         this.studentRepository = studentRepository;
         this.roomService = roomService;
         this.contractRepository = contractRepository;
-        this.violationRepository = violationRepository;
         this.cacheManager = cacheManager;
+        this.violationService = violationService;
     }
 
     public Page<StudentResponseDto> findStudentsPaged(int page, int size) {
@@ -50,27 +54,35 @@ public class StudentService {
     }
 
     public Page<StudentResponseDto> findStudentsByAgePaged(int age, int page, int size) {
+        if (age < 16 || age > 100) {
+            throw new BadRequestException("Возраст студента должен быть в диапазоне от 16 до 100 лет");
+        }
         Pageable pageable = PageRequest.of(page, size, Sort.by("id").ascending());
         return studentRepository.findByAge(age, pageable)
                 .map(studentMapper::toDto);
     }
 
     public StudentResponseDto findStudentsById(Long id) {
-        Student students = studentRepository.findStudentById(id);
+        Student students = studentRepository.findStudentById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Students not found with id: " + id));
         return studentMapper.toDto(students);
     }
 
     public Student findStudentEntityById(Long id) {
-        return studentRepository.findStudentById(id);
+        return studentRepository.findStudentById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Students not found with id: " + id));
     }
 
     public void deleteStudentById(Long id) {
-        studentRepository.deleteById(id);
+        Student student = studentRepository.findStudentById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Student not found with id: " + id));
+        studentRepository.delete(student);
         cacheManager.invalidate(Student.class);
     }
 
     public StudentResponseDto assignStudentToRoom(Long studentId, Long roomId) {
-        Student student = studentRepository.findStudentById(studentId);
+        Student student = studentRepository.findStudentById(studentId)
+                .orElseThrow(() -> new ResourceNotFoundException("Students not found with id: " + studentId));
         Room room = roomService.findRoomEntityById(roomId);
 
         if (student.getRoom() != null) {
@@ -85,11 +97,12 @@ public class StudentService {
     }
 
     public StudentResponseDto addViolationToStudent(Long studentId, Long violationId) {
-        Student student = studentRepository.findStudentById(studentId);
-        Violation violation = violationRepository.findViolationById(violationId);
+        Student student = studentRepository.findStudentById(studentId)
+                .orElseThrow(() -> new ResourceNotFoundException("Students not found with id: " + studentId));
+        Violation violation = violationService.findViolationById(violationId);
 
         if (student.getViolations().contains(violation)) {
-            throw new RuntimeException("Это нарушение уже есть");
+            throw new BadRequestException("Это нарушение уже есть");
         }
 
         student.getViolations().add(violation);
@@ -104,6 +117,10 @@ public class StudentService {
         Room room = roomService.findRoomEntityById(id);
         Student student = studentMapper.toEntity(request);
 
+        if (student.getAge() != null && (student.getAge() < 16 || student.getAge() > 100)) {
+            throw new BadRequestException("Возраст студента должен быть в диапазоне от 16 до 100 лет");
+        }
+
         student.setRoom(room);
         room.getStudents().add(student);
         studentRepository.save(student);
@@ -112,7 +129,12 @@ public class StudentService {
     }
 
     public StudentResponseDto updateStudent(Long id, StudentRequestDto studentUpdates) {
-        Student student = studentRepository.findStudentById(id);
+        Student student = studentRepository.findStudentById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Students not found with id: " + id));
+
+        if (studentUpdates.getAge() != null && (studentUpdates.getAge() < 16 || studentUpdates.getAge() > 100)) {
+            throw new BadRequestException("Возраст студента должен быть в диапазоне от 16 до 100 лет");
+        }
 
         student.setName(studentUpdates.getName());
         student.setSurname(studentUpdates.getSurname());
@@ -126,7 +148,12 @@ public class StudentService {
     }
 
     public StudentResponseDto updatePatchStudent(Long id, StudentRequestDto studentUpdates) {
-        Student student = studentRepository.findStudentById(id);
+        Student student = studentRepository.findStudentById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Students not found with id: " + id));
+
+        if (studentUpdates.getAge() != null && (studentUpdates.getAge() < 16 || studentUpdates.getAge() > 100)) {
+            throw new BadRequestException("Возраст студента должен быть в диапазоне от 16 до 100 лет");
+        }
 
         if (studentUpdates.getName() != null) {
             student.setName(studentUpdates.getName());
@@ -158,7 +185,27 @@ public class StudentService {
     }
 
     public StudentResponseDto creationStudentNoTx(StudentCreationDto creation) {
+
+        if (creation.getContractStartDate() == null || creation.getContractEndDate() == null) {
+            throw new BadRequestException("Даты начала и окончания контракта должны быть заполнены");
+        }
+
+        LocalDate start = LocalDate.parse(creation.getContractStartDate());
+        LocalDate end = LocalDate.parse(creation.getContractEndDate());
+
+        if (end.isBefore(start)) {
+            throw new BadRequestException("Дата окончания контракта не может быть раньше даты начала");
+        }
+
+        if (contractRepository.existsByNumber(creation.getContractNumber())) {
+            throw new BadRequestException("Контракт с номером " + creation.getContractNumber() + " уже существует");
+        }
+
         Room room = roomService.findRoomEntityById(creation.getRoomId());
+
+        if (creation.getAge() != null && creation.getAge() < 16|| creation.getAge() > 100) {
+            throw new BadRequestException("Возраст студента должен быть в диапазоне от 16 до 100 лет");
+        }
 
         Student student = Student.builder()
                 .name(creation.getName())
@@ -172,7 +219,7 @@ public class StudentService {
         studentRepository.save(student);
 
         if (creation.isInitiateProblem()) {
-            throw new RuntimeException("Ошибка");
+            throw new RuntimeException("Ошибка для проверки транзакции");
         }
 
         Contract contract = Contract.builder()
@@ -198,6 +245,9 @@ public class StudentService {
 
     public Page<StudentResponseDto> filterStudentsWithJpqlPaged(
             Integer chs, ViolationType violationType, int page, int size) {
+        if (chs == null && violationType == null) {
+            throw new BadRequestException("Необходимо указать хотя бы один фильтр: CHS или тип нарушения");
+        }
         CacheKey cacheKey = buildCacheKey(chs, violationType, page, size);
 
         return cacheManager.computeIfAbsent(cacheKey, () -> {
@@ -210,6 +260,9 @@ public class StudentService {
 
     public Page<StudentResponseDto> filterStudentsWithNativePaged(
             Integer chs, String violationType, int page, int size) {
+        if (chs == null && violationType == null) {
+            throw new BadRequestException("Необходимо указать хотя бы один фильтр: CHS или тип нарушения");
+        }
 
         CacheKey cacheKey = buildCacheKey(chs, violationType, page, size);
 
