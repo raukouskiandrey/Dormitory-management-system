@@ -95,7 +95,7 @@ public class ViolationService {
 
         LocalDate violationDate = LocalDate.parse(dateStr);
         if (violationDate.isAfter(LocalDate.now())) {
-            throw new BadRequestException("Дата нарушения не может быть в будущем");
+            throw new BadRequestException("Дата нарушения не может быть в будущемlfdzbzr");
         }
     }
 }
