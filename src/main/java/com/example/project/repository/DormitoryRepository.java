@@ -20,5 +20,5 @@ public interface DormitoryRepository extends JpaRepository<Dormitory, Long> {
 
     Optional<Dormitory> findDormitoryById(Long id);
 
-    boolean existsByNameAndAddress(String name,String addres);
+    boolean existsByNameAndAddress(String name,String address);
 }

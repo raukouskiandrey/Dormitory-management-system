@@ -20,6 +20,7 @@ public class ViolationService {
     public final ViolationMapper violationMapper;
     public final ViolationRepository violationRepository;
     private final StudentRepository studentRepository;
+    private static final String VIOLATION_NOT_FOUND = "Нарушение с id не найдено:";
 
     public ViolationService(ViolationRepository violationRepository,
                             ViolationMapper violationMapper,
@@ -36,12 +37,12 @@ public class ViolationService {
 
     public Violation findViolationById(Long id) {
         return violationRepository.findViolationById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Violation not found with id: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException(VIOLATION_NOT_FOUND + id));
     }
 
     public ViolationResponseDto createViolation(Long studentId, ViolationRequestDto request) {
         Student student = studentRepository.findById(studentId)
-                .orElseThrow(() -> new ResourceNotFoundException("Student not found with id: " + studentId));
+                .orElseThrow(() -> new ResourceNotFoundException(VIOLATION_NOT_FOUND + studentId));
         validateViolationDate(request.getDate());
         Violation violation = violationMapper.toEntity(request);
 
@@ -53,7 +54,7 @@ public class ViolationService {
 
     public ViolationResponseDto updateViolation(Long id, ViolationRequestDto updatedViolation) {
         Violation violation = violationRepository.findViolationById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Violation not found with id: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException(VIOLATION_NOT_FOUND + id));
 
         validateViolationDate(updatedViolation.getDate());
         violation.setDate(updatedViolation.getDate());
@@ -64,7 +65,7 @@ public class ViolationService {
 
     public ViolationResponseDto updatePatchViolation(Long id, ViolationRequestDto updatedViolation) {
         Violation violation = violationRepository.findViolationById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Violations not found with id: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException(VIOLATION_NOT_FOUND + id));
 
         if (updatedViolation.getDate() != null) {
             validateViolationDate(updatedViolation.getDate());
@@ -81,7 +82,7 @@ public class ViolationService {
 
     public void deleteViolationById(Long id) {
         Violation violation = violationRepository.findViolationById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Violations not found with id: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException(VIOLATION_NOT_FOUND + id));
         for (Student student : violation.getStudents()) {
             student.getViolations().remove(violation);
         }

@@ -17,7 +17,7 @@ public class RoomService {
     private final DormitoryService dormitoryService;
     public final RoomRepository roomRepository;
     public final RoomMapper roomMapper;
-    private static final String ROOM_NOT_FOUND = "Rooms not found with id: ";
+    private static final String ROOM_NOT_FOUND = "Комната с id не найдена:";
 
     public RoomService(RoomRepository roomRepository, RoomMapper roomMapper, DormitoryService dormitoryService) {
         this.roomRepository = roomRepository;

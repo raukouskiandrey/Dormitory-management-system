@@ -19,7 +19,7 @@ public class ContractService {
     private final StudentService studentService;
     public final ContractRepository contractRepository;
     public final ContractMapper contractMapper;
-    private static final String CONTRACT_NOT_FOUND = "Contracts not found with id: ";
+    private static final String CONTRACT_NOT_FOUND = "Контракт с id не найден:";
 
     public ContractService(ContractRepository contractRepository,
                            ContractMapper contractMapper,

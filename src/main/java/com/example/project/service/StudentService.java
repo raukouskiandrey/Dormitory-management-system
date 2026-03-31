@@ -28,7 +28,9 @@ import java.time.LocalDate;
 public class StudentService {
     private static final int MIN_AGE = 16;
     private static final int MAX_AGE = 100;
-    private static final String STUDENT_NOT_FOUND = "Students not found with id: ";
+    private static final String STUDENT_NOT_FOUND = "Студент с id не найден:";
+    private static final String AGE_VALIDATION_MESSAGE =
+            "Возраст студента должен быть в диапазоне от " + MIN_AGE + " до " + MAX_AGE + " лет";
 
     private final StudentMapper studentMapper;
     private final StudentRepository studentRepository;
@@ -58,9 +60,7 @@ public class StudentService {
 
     public Page<StudentResponseDto> findStudentsByAgePaged(int age, int page, int size) {
         if (age < MIN_AGE || age > MAX_AGE) {
-            String message = "Возраст студента должен быть в диапазоне от "
-                    + MIN_AGE + " до " + MAX_AGE + " лет";
-            throw new BadRequestException(message);
+            throw new BadRequestException(AGE_VALIDATION_MESSAGE);
         }
         Pageable pageable = PageRequest.of(page, size, Sort.by("id").ascending());
         return studentRepository.findByAge(age, pageable)
@@ -124,9 +124,7 @@ public class StudentService {
 
         if (student.getAge() != null
                 && (student.getAge() < MIN_AGE || student.getAge() > MAX_AGE)) {
-            String message = "Возраст студента должен быть в диапазоне от "
-                    + MIN_AGE + " до " + MAX_AGE + " лет";
-            throw new BadRequestException(message);
+            throw new BadRequestException(AGE_VALIDATION_MESSAGE);
         }
 
         student.setRoom(room);
@@ -142,9 +140,7 @@ public class StudentService {
 
         if (studentUpdates.getAge() != null
                 && (studentUpdates.getAge() < MIN_AGE || studentUpdates.getAge() > MAX_AGE)) {
-            String message = "Возраст студента должен быть в диапазоне от "
-                    + MIN_AGE + " до " + MAX_AGE + " лет";
-            throw new BadRequestException(message);
+            throw new BadRequestException(AGE_VALIDATION_MESSAGE);
         }
 
         student.setName(studentUpdates.getName());
@@ -164,9 +160,7 @@ public class StudentService {
 
         if (studentUpdates.getAge() != null
                 && (studentUpdates.getAge() < MIN_AGE || studentUpdates.getAge() > MAX_AGE)) {
-            String message = "Возраст студента должен быть в диапазоне от "
-                    + MIN_AGE + " до " + MAX_AGE + " лет";
-            throw new BadRequestException(message);
+            throw new BadRequestException(AGE_VALIDATION_MESSAGE);
         }
 
         if (studentUpdates.getName() != null) {
@@ -222,9 +216,7 @@ public class StudentService {
 
         if (creation.getAge() != null
                 && (creation.getAge() < MIN_AGE || creation.getAge() > MAX_AGE)) {
-            String message = "Возраст студента должен быть в диапазоне от "
-                    + MIN_AGE + " до " + MAX_AGE + " лет";
-            throw new BadRequestException(message);
+            throw new BadRequestException(AGE_VALIDATION_MESSAGE);
         }
 
         Student student = Student.builder()
