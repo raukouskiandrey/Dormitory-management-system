@@ -17,5 +17,6 @@ public interface RoomRepository extends JpaRepository<Room, Long> {
     List<Room> findAllWithGraph();
 
     Optional<Room> findRoomById(Long id);
+
     boolean existsByNumberAndDormitoryId(Integer number,Long dormitoryId);
 }

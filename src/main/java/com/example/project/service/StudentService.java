@@ -27,13 +27,16 @@ import java.time.LocalDate;
 
 @Service
 public class StudentService {
+    private static final int MIN_AGE = 16;
+    private static final int MAX_AGE = 100;
+    private static final String STUDENT_NOT_FOUND = "Students not found with id: ";
+
     private final StudentMapper studentMapper;
     private final StudentRepository studentRepository;
     private final RoomService roomService;
     private final ContractRepository contractRepository;
     private final CacheManager cacheManager;
     private final ViolationService violationService;
-    private static final String STUDENT_NOT_FOUND = "Students not found with id: ";
 
     public StudentService(StudentMapper studentMapper,
                           StudentRepository studentRepository,
@@ -55,8 +58,10 @@ public class StudentService {
     }
 
     public Page<StudentResponseDto> findStudentsByAgePaged(int age, int page, int size) {
-        if (age < 16 || age > 100) {
-            throw new BadRequestException("Возраст студента должен быть в диапазоне от 16 до 100 лет");
+        if (age < MIN_AGE || age > MAX_AGE) {
+            String message = "Возраст студента должен быть в диапазоне от "
+                    + MIN_AGE + " до " + MAX_AGE + " лет";
+            throw new BadRequestException(message);
         }
         Pageable pageable = PageRequest.of(page, size, Sort.by("id").ascending());
         return studentRepository.findByAge(age, pageable)
@@ -118,8 +123,11 @@ public class StudentService {
         Room room = roomService.findRoomEntityById(id);
         Student student = studentMapper.toEntity(request);
 
-        if (student.getAge() != null && (student.getAge() < 16 || student.getAge() > 100)) {
-            throw new BadRequestException("Возраст студента должен быть в диапазоне от 16 до 100 лет");
+        if (student.getAge() != null
+                && (student.getAge() < MIN_AGE || student.getAge() > MAX_AGE)) {
+            String message = "Возраст студента должен быть в диапазоне от "
+                    + MIN_AGE + " до " + MAX_AGE + " лет";
+            throw new BadRequestException(message);
         }
 
         student.setRoom(room);
@@ -133,8 +141,11 @@ public class StudentService {
         Student student = studentRepository.findStudentById(id)
                 .orElseThrow(() -> new ResourceNotFoundException(STUDENT_NOT_FOUND + id));
 
-        if (studentUpdates.getAge() != null && (studentUpdates.getAge() < 16 || studentUpdates.getAge() > 100)) {
-            throw new BadRequestException("Возраст студента должен быть в диапазоне от 16 до 100 лет");
+        if (studentUpdates.getAge() != null
+                && (studentUpdates.getAge() < MIN_AGE || studentUpdates.getAge() > MAX_AGE)) {
+            String message = "Возраст студента должен быть в диапазоне от "
+                    + MIN_AGE + " до " + MAX_AGE + " лет";
+            throw new BadRequestException(message);
         }
 
         student.setName(studentUpdates.getName());
@@ -152,8 +163,11 @@ public class StudentService {
         Student student = studentRepository.findStudentById(id)
                 .orElseThrow(() -> new ResourceNotFoundException(STUDENT_NOT_FOUND + id));
 
-        if (studentUpdates.getAge() != null && (studentUpdates.getAge() < 16 || studentUpdates.getAge() > 100)) {
-            throw new BadRequestException("Возраст студента должен быть в диапазоне от 16 до 100 лет");
+        if (studentUpdates.getAge() != null
+                && (studentUpdates.getAge() < MIN_AGE || studentUpdates.getAge() > MAX_AGE)) {
+            String message = "Возраст студента должен быть в диапазоне от "
+                    + MIN_AGE + " до " + MAX_AGE + " лет";
+            throw new BadRequestException(message);
         }
 
         if (studentUpdates.getName() != null) {
@@ -188,24 +202,30 @@ public class StudentService {
     public StudentResponseDto creationStudentNoTx(StudentCreationDto creation) {
 
         if (creation.getContractStartDate() == null || creation.getContractEndDate() == null) {
-            throw new BadRequestException("Даты начала и окончания контракта должны быть заполнены");
+            throw new BadRequestException(
+                    "Даты начала и окончания контракта должны быть заполнены");
         }
 
         LocalDate start = LocalDate.parse(creation.getContractStartDate());
         LocalDate end = LocalDate.parse(creation.getContractEndDate());
 
         if (end.isBefore(start)) {
-            throw new BadRequestException("Дата окончания контракта не может быть раньше даты начала");
+            throw new BadRequestException(
+                    "Дата окончания контракта не может быть раньше даты начала");
         }
 
         if (contractRepository.existsByNumber(creation.getContractNumber())) {
-            throw new BadRequestException("Контракт с номером " + creation.getContractNumber() + " уже существует");
+            throw new BadRequestException(
+                    "Контракт с номером " + creation.getContractNumber() + " уже существует");
         }
 
         Room room = roomService.findRoomEntityById(creation.getRoomId());
 
-        if (creation.getAge() != null && creation.getAge() < 16|| creation.getAge() > 100) {
-            throw new BadRequestException("Возраст студента должен быть в диапазоне от 16 до 100 лет");
+        if (creation.getAge() != null
+                && (creation.getAge() < MIN_AGE || creation.getAge() > MAX_AGE)) {
+            String message = "Возраст студента должен быть в диапазоне от "
+                    + MIN_AGE + " до " + MAX_AGE + " лет";
+            throw new BadRequestException(message);
         }
 
         Student student = Student.builder()
@@ -225,7 +245,6 @@ public class StudentService {
 
         Contract contract = Contract.builder()
                 .number(creation.getContractNumber())
-
                 .startDate(creation.getContractStartDate())
                 .endDate(creation.getContractEndDate())
                 .student(student)
@@ -247,14 +266,15 @@ public class StudentService {
     public Page<StudentResponseDto> filterStudentsWithJpqlPaged(
             Integer chs, ViolationType violationType, int page, int size) {
         if (chs == null && violationType == null) {
-            throw new BadRequestException("Необходимо указать хотя бы один фильтр: CHS или тип нарушения");
+            throw new BadRequestException(
+                    "Необходимо указать хотя бы один фильтр: CHS или тип нарушения");
         }
         CacheKey cacheKey = buildCacheKey(chs, violationType, page, size);
 
         return cacheManager.computeIfAbsent(cacheKey, () -> {
             Pageable pageable = PageRequest.of(page, size, Sort.by("id").ascending());
-            Page<Student> studentPage = studentRepository.findStudentsByComplexCriteriaJpql(chs,
-                    violationType, pageable);
+            Page<Student> studentPage = studentRepository.findStudentsByComplexCriteriaJpql(
+                    chs, violationType, pageable);
             return studentPage.map(studentMapper::toDto);
         });
     }
@@ -262,20 +282,22 @@ public class StudentService {
     public Page<StudentResponseDto> filterStudentsWithNativePaged(
             Integer chs, String violationType, int page, int size) {
         if (chs == null && violationType == null) {
-            throw new BadRequestException("Необходимо указать хотя бы один фильтр: CHS или тип нарушения");
+            throw new BadRequestException(
+                    "Необходимо указать хотя бы один фильтр: CHS или тип нарушения");
         }
 
         CacheKey cacheKey = buildCacheKey(chs, violationType, page, size);
 
         return cacheManager.computeIfAbsent(cacheKey, () -> {
             Pageable pageable = PageRequest.of(page, size, Sort.by("id").ascending());
-            return studentRepository.findStudentsByComplexCriteriaNative(chs, violationType, pageable);
+            return studentRepository.findStudentsByComplexCriteriaNative(
+                    chs, violationType, pageable);
         });
     }
 
     private CacheKey buildCacheKey(Integer chs, Object violationType, int page, int size) {
         String normalizedViolationType = violationType != null ? violationType.toString() : null;
-        return new CacheKey(Student.class, "filterStudents", chs, normalizedViolationType, page, size);
+        return new CacheKey(Student.class, "filterStudents",
+                chs, normalizedViolationType, page, size);
     }
-
 }

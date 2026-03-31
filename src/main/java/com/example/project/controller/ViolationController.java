@@ -9,7 +9,15 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 
@@ -31,7 +39,9 @@ public class ViolationController {
     }
 
     @PostMapping("/{studentId}")
-    @Operation(summary = "Зафиксировать нарушение", description = "Создает запись о нарушении и привязывает её к конкретному студенту")
+    @Operation(
+            summary = "Зафиксировать нарушение",
+            description = "Создает запись о нарушении и привязывает её к конкретному студенту")
     public ResponseEntity<ViolationResponseDto> createViolation(
             @Parameter(description = "ID студента-нарушителя", example = "1")
             @PathVariable Long studentId,
@@ -41,7 +51,9 @@ public class ViolationController {
     }
 
     @PutMapping("/{id}")
-    @Operation(summary = "Полное обновление данных о нарушении", description = "Позволяет полностью изменить информацию о зафиксированном инциденте")
+    @Operation(
+            summary = "Полное обновление данных о нарушении",
+            description = "Позволяет полностью изменить информацию о зафиксированном инциденте")
     public ResponseEntity<ViolationResponseDto> updateViolationById(
             @Parameter(description = "ID записи о нарушении", example = "10")
             @PathVariable Long id,

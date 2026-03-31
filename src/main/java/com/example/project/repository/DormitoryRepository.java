@@ -19,5 +19,6 @@ public interface DormitoryRepository extends JpaRepository<Dormitory, Long> {
     List<Dormitory> findAll();
 
     Optional<Dormitory> findDormitoryById(Long id);
+
     boolean existsByNameAndAddress(String name,String addres);
 }

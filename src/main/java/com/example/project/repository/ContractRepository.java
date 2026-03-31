@@ -9,5 +9,6 @@ import java.util.Optional;
 @Repository
 public interface ContractRepository extends JpaRepository<Contract, Long> {
     Optional<Contract> findContractById(Long id);
+
     boolean existsByNumber(Integer number);
 }
