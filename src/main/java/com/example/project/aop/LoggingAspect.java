@@ -23,8 +23,10 @@ public class LoggingAspect {
     private static final int SLOW_THRESHOLD_MS = 500;
     private static final int VERY_SLOW_THRESHOLD_MS = 1000;
 
+
     @Pointcut("within(@org.springframework.stereotype.Service *) "
-            + "|| within(@org.springframework.web.bind.annotation.RestController *)")
+            + "|| within(@org.springframework.web.bind.annotation.RestController *) "
+            + "|| within(@org.springframework.web.bind.annotation.RestControllerAdvice *)")
     public void applicationLayerMethods() {
     }
 
