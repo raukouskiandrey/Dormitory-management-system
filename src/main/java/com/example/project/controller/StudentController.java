@@ -77,6 +77,12 @@ public class StudentController {
         return ok(updatedStudent);
     }
 
+    @PostMapping("/{studentId}/evict")
+    @Operation(summary = "Выселить студента", description = "Удаляет студента из комнате")
+    public ResponseEntity<StudentResponseDto> evictStudent(@PathVariable Long studentId) {
+        return ResponseEntity.ok(studentService.removeStudentFromRoom(studentId));
+    }
+
     @PostMapping("/{studentId}/add-violation/{violationId}")
     @Operation(
             summary = "Привязать нарушение к студенту",

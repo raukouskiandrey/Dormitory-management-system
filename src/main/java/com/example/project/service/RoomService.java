@@ -51,8 +51,6 @@ public class RoomService {
         if (roomRepository.existsByNumberAndDormitoryId(request.getNumber(), dormitoryId)) {
             throw new BadRequestException("Комната номер " + request.getNumber() + " уже существует в этом общежитии");
         }
-
-        validateRoomData(request.getNumber(), request.getTotalPlaces());
         Room room = roomMapper.toEntity(request);
         room.setDormitory(dormitory);
         dormitory.getRooms().add(room);
@@ -66,12 +64,16 @@ public class RoomService {
 
         if (!room.getNumber().equals(roomUpdates.getNumber())
                 && roomRepository.existsByNumberAndDormitoryId(
-                        roomUpdates.getNumber(), room.getDormitory().getId())) {
+                roomUpdates.getNumber(), room.getDormitory().getId())) {
 
             throw new BadRequestException("Номер комнаты " + roomUpdates.getNumber() + " уже занят в этом общежитии");
         }
 
-        validateRoomData(roomUpdates.getNumber(), roomUpdates.getTotalPlaces());
+        if (roomUpdates.getTotalPlaces() < room.getStudents().size()) {
+            throw new BadRequestException("Нельзя установить лимит " + roomUpdates.getTotalPlaces()
+                    + ", так как в комнате уже живет " + room.getStudents().size() + " чел.");
+        }
+
         room.setNumber(roomUpdates.getNumber());
         room.setTotalPlaces(roomUpdates.getTotalPlaces());
         roomRepository.save(room);
@@ -81,23 +83,27 @@ public class RoomService {
     public RoomResponseDto updatePatchRoom(Long id, RoomRequestDto roomUpdates) {
         Room room = roomRepository.findRoomById(id)
                 .orElseThrow(() -> new ResourceNotFoundException(ROOM_NOT_FOUND + id));
-        Integer oldNumber = room.getNumber();
+
+        validateRoomData(roomUpdates.getNumber(), roomUpdates.getTotalPlaces());
 
         if (roomUpdates.getNumber() != null) {
+            if (!room.getNumber().equals(roomUpdates.getNumber())
+                    && roomRepository.existsByNumberAndDormitoryId(roomUpdates.getNumber(),
+                    room.getDormitory().getId())) {
+                throw new BadRequestException("Номер комнаты " + roomUpdates.getNumber()
+                        + " уже занят в этом общежитии");
+            }
             room.setNumber(roomUpdates.getNumber());
         }
 
         if (roomUpdates.getTotalPlaces() != null) {
+            if (roomUpdates.getTotalPlaces() < room.getStudents().size()) {
+                throw new BadRequestException("Лимит мест (" + roomUpdates.getTotalPlaces()
+                        + ") меньше текущего кол-ва студентов (" + room.getStudents().size() + ")");
+            }
             room.setTotalPlaces(roomUpdates.getTotalPlaces());
         }
 
-        if (!oldNumber.equals(room.getNumber())
-                && roomRepository.existsByNumberAndDormitoryId(room.getNumber(), room.getDormitory().getId())) {
-
-            throw new BadRequestException("Номер комнаты " + room.getNumber() + " уже занят в этом общежитии");
-        }
-
-        validateRoomData(room.getNumber(), room.getTotalPlaces());
         roomRepository.save(room);
         return roomMapper.toDto(room);
     }

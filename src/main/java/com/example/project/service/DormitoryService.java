@@ -16,7 +16,7 @@ public class DormitoryService {
 
     public final DormitoryMapper dormitoryMapper;
     public final DormitoryRepository dormitoryRepository;
-    private static final String DORMITORY_NOT_FOUND = "Контракт с id не найдено:";
+    private static final String DORMITORY_NOT_FOUND = "Общежитие с id не найдено:";
 
     public DormitoryService(DormitoryRepository dormitoryRepository, DormitoryMapper dormitoryMapper) {
         this.dormitoryRepository = dormitoryRepository;

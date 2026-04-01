@@ -34,6 +34,6 @@ public class StudentRequestDto {
     private Integer age;
 
     @Schema(description = "Часы общественно-полезного труда (ОПТ)", example = "5")
-    @Min(value = 0, message = "часы ОПТ не можгут быть отрицательными")
+    @Min(value = 0, message = "часы ОПТ не могут быть отрицательными")
     private Integer chs;
 }

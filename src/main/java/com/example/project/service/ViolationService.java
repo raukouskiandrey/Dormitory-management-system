@@ -42,7 +42,7 @@ public class ViolationService {
 
     public ViolationResponseDto createViolation(Long studentId, ViolationRequestDto request) {
         Student student = studentRepository.findById(studentId)
-                .orElseThrow(() -> new ResourceNotFoundException(VIOLATION_NOT_FOUND + studentId));
+                .orElseThrow(() -> new ResourceNotFoundException("Студент с id не найден: " + studentId));
         validateViolationDate(request.getDate());
         Violation violation = violationMapper.toEntity(request);
 
@@ -90,10 +90,6 @@ public class ViolationService {
     }
 
     private void validateViolationDate(String dateStr) {
-        if (dateStr == null) {
-            return;
-        }
-
         LocalDate violationDate = LocalDate.parse(dateStr);
         if (violationDate.isAfter(LocalDate.now())) {
             throw new BadRequestException("Дата нарушения не может быть в будущем");

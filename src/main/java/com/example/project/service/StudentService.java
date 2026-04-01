@@ -90,12 +90,35 @@ public class StudentService {
                 .orElseThrow(() -> new ResourceNotFoundException(STUDENT_NOT_FOUND + studentId));
         Room room = roomService.findRoomEntityById(roomId);
 
+        if (student.getRoom() != null && student.getRoom().getId().equals(roomId)) {
+            return studentMapper.toDto(student);
+        }
+
+        if (room.getStudents().size() >= room.getTotalPlaces()) {
+            throw new BadRequestException("В комнате №" + room.getNumber() + " нет свободных мест");
+        }
+
         if (student.getRoom() != null) {
             student.getRoom().getStudents().remove(student);
         }
 
         student.setRoom(room);
         room.getStudents().add(student);
+        studentRepository.save(student);
+        cacheManager.invalidate(Student.class);
+        return studentMapper.toDto(student);
+    }
+
+    @Transactional
+    public StudentResponseDto removeStudentFromRoom(Long studentId) {
+        Student student = studentRepository.findStudentById(studentId)
+                .orElseThrow(() -> new ResourceNotFoundException(STUDENT_NOT_FOUND + studentId));
+        Room room = student.getRoom();
+        if (room == null) {
+            throw new BadRequestException("Студент с id " + studentId + " и так не числится ни в одной комнате");
+        }
+        room.getStudents().remove(student);
+        student.setRoom(null);
         studentRepository.save(student);
         cacheManager.invalidate(Student.class);
         return studentMapper.toDto(student);
@@ -120,13 +143,11 @@ public class StudentService {
 
     public StudentResponseDto createStudent(Long id, StudentRequestDto request) {
         Room room = roomService.findRoomEntityById(id);
-        Student student = studentMapper.toEntity(request);
-
-        if (student.getAge() != null
-                && (student.getAge() < MIN_AGE || student.getAge() > MAX_AGE)) {
-            throw new BadRequestException(AGE_VALIDATION_MESSAGE);
+        if (room.getStudents().size() >= room.getTotalPlaces()) {
+            throw new BadRequestException(
+                    "В комнате №" + room.getNumber() + " нет свободных мест (макс. " + room.getTotalPlaces() + ")");
         }
-
+        Student student = studentMapper.toEntity(request);
         student.setRoom(room);
         room.getStudents().add(student);
         studentRepository.save(student);
@@ -137,12 +158,6 @@ public class StudentService {
     public StudentResponseDto updateStudent(Long id, StudentRequestDto studentUpdates) {
         Student student = studentRepository.findStudentById(id)
                 .orElseThrow(() -> new ResourceNotFoundException(STUDENT_NOT_FOUND + id));
-
-        if (studentUpdates.getAge() != null
-                && (studentUpdates.getAge() < MIN_AGE || studentUpdates.getAge() > MAX_AGE)) {
-            throw new BadRequestException(AGE_VALIDATION_MESSAGE);
-        }
-
         student.setName(studentUpdates.getName());
         student.setSurname(studentUpdates.getSurname());
         student.setPatronymic(studentUpdates.getPatronymic());
@@ -193,12 +208,6 @@ public class StudentService {
     }
 
     public StudentResponseDto creationStudentNoTx(StudentCreationDto creation) {
-
-        if (creation.getContractStartDate() == null || creation.getContractEndDate() == null) {
-            throw new BadRequestException(
-                    "Даты начала и окончания контракта должны быть заполнены");
-        }
-
         LocalDate start = LocalDate.parse(creation.getContractStartDate());
         LocalDate end = LocalDate.parse(creation.getContractEndDate());
 
@@ -213,11 +222,6 @@ public class StudentService {
         }
 
         Room room = roomService.findRoomEntityById(creation.getRoomId());
-
-        if (creation.getAge() != null
-                && (creation.getAge() < MIN_AGE || creation.getAge() > MAX_AGE)) {
-            throw new BadRequestException(AGE_VALIDATION_MESSAGE);
-        }
 
         Student student = Student.builder()
                 .name(creation.getName())

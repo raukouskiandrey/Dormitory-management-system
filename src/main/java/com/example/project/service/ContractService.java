@@ -92,9 +92,6 @@ public class ContractService {
     }
 
     private void validateDates(String startStr, String endStr) {
-        if (startStr == null || endStr == null) {
-            return;
-        }
         LocalDate start = LocalDate.parse(startStr);
         LocalDate end = LocalDate.parse(endStr);
         if (end.isBefore(start)) {
