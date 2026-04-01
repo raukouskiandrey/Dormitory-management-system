@@ -40,7 +40,7 @@ public class RoomController {
 
     @GetMapping("/withGraph")
     @Operation(
-            summary = "Получить комнаты с детализацией с помощью EntityGraph",
+            summary = "Получить комнаты с помощью EntityGraph",
             description = "Возвращает комнаты вместе с данными об общежитии и проживающих студентах за один запрос"
     )
     public ResponseEntity<List<RoomResponseDto>> getRoomsWithGraph() {
