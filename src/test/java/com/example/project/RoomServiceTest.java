@@ -350,4 +350,266 @@ class RoomServiceTest {
 
         assertThrows(ResourceNotFoundException.class, () -> roomService.deleteRoomById(id));
     }
+
+    // ========== ДОПОЛНИТЕЛЬНЫЕ ТЕСТЫ ДЛЯ ПОЛНОГО ПОКРЫТИЯ ==========
+
+    @Test
+    @DisplayName("updateRoom - номер не меняется (равен старому) - проверка дубликата НЕ выполняется")
+    void updateRoom_numberNotChanged() {
+        Long id = 1L;
+        RoomRequestDto request = new RoomRequestDto();
+        request.setNumber(101); // тот же номер
+        request.setTotalPlaces(4);
+
+        Dormitory dormitory = new Dormitory();
+        dormitory.setId(1L);
+
+        Room room = new Room();
+        room.setNumber(101);
+        room.setTotalPlaces(3);
+        room.setDormitory(dormitory);
+        room.setStudents(new HashSet<>());
+
+        when(roomRepository.findRoomById(id)).thenReturn(Optional.of(room));
+        when(roomRepository.save(room)).thenReturn(room);
+        when(roomMapper.toDto(room)).thenReturn(new RoomResponseDto());
+
+        roomService.updateRoom(id, request);
+
+        // existsByNumberAndDormitoryId НЕ должен вызываться, так как номер не меняется
+        verify(roomRepository, never()).existsByNumberAndDormitoryId(anyInt(), anyLong());
+        verify(roomRepository).save(room);
+    }
+
+    @Test
+    @DisplayName("updatePatchRoom - номер не меняется (null в запросе) - проверка дубликата НЕ выполняется")
+    void updatePatchRoom_numberNull() {
+        Long id = 1L;
+        RoomRequestDto request = new RoomRequestDto();
+        request.setNumber(null); // номер не меняется
+        request.setTotalPlaces(5);
+
+        Dormitory dormitory = new Dormitory();
+        dormitory.setId(1L);
+
+        Room room = new Room();
+        room.setNumber(101);
+        room.setTotalPlaces(3);
+        room.setDormitory(dormitory);
+        room.setStudents(new HashSet<>());
+
+        when(roomRepository.findRoomById(id)).thenReturn(Optional.of(room));
+        when(roomRepository.save(room)).thenReturn(room);
+        when(roomMapper.toDto(room)).thenReturn(new RoomResponseDto());
+
+        roomService.updatePatchRoom(id, request);
+
+        assertEquals(5, room.getTotalPlaces());
+        assertEquals(101, room.getNumber()); // не изменился
+        verify(roomRepository, never()).existsByNumberAndDormitoryId(anyInt(), anyLong());
+        verify(roomRepository).save(room);
+    }
+
+    @Test
+    @DisplayName("updatePatchRoom - totalPlaces null (не обновляется)")
+    void updatePatchRoom_totalPlacesNull() {
+        Long id = 1L;
+        RoomRequestDto request = new RoomRequestDto();
+        request.setNumber(200);
+        request.setTotalPlaces(null); // не обновляется
+
+        Dormitory dormitory = new Dormitory();
+        dormitory.setId(1L);
+
+        Room room = new Room();
+        room.setNumber(101);
+        room.setTotalPlaces(3);
+        room.setDormitory(dormitory);
+        room.setStudents(new HashSet<>());
+
+        when(roomRepository.findRoomById(id)).thenReturn(Optional.of(room));
+        when(roomRepository.existsByNumberAndDormitoryId(200, 1L)).thenReturn(false);
+        when(roomRepository.save(room)).thenReturn(room);
+        when(roomMapper.toDto(room)).thenReturn(new RoomResponseDto());
+
+        roomService.updatePatchRoom(id, request);
+
+        assertEquals(200, room.getNumber());
+        assertEquals(3, room.getTotalPlaces()); // не изменилось
+        verify(roomRepository).save(room);
+    }
+
+    @Test
+    @DisplayName("updatePatchRoom - конфликт при смене номера (номер уже занят)")
+    void updatePatchRoom_duplicateNumberConflict() {
+        Long id = 1L;
+        RoomRequestDto request = new RoomRequestDto();
+        request.setNumber(999);
+
+        Dormitory dormitory = new Dormitory();
+        dormitory.setId(1L);
+
+        Room room = new Room();
+        room.setNumber(101);
+        room.setTotalPlaces(3);
+        room.setDormitory(dormitory);
+        room.setStudents(new HashSet<>());
+
+        when(roomRepository.findRoomById(id)).thenReturn(Optional.of(room));
+        when(roomRepository.existsByNumberAndDormitoryId(999, 1L)).thenReturn(true);
+
+        assertThrows(BadRequestException.class, () -> roomService.updatePatchRoom(id, request));
+        verify(roomRepository, never()).save(any());
+    }
+
+    @Test
+    @DisplayName("validateRoomData - number = null (пропускается валидация)")
+    void validateRoomData_numberNull() {
+        Long id = 1L;
+        RoomRequestDto request = new RoomRequestDto();
+        request.setNumber(null);
+        request.setTotalPlaces(3); // валидное значение
+
+        Dormitory dormitory = new Dormitory();
+        dormitory.setId(1L);
+
+        Room room = new Room();
+        room.setNumber(101);
+        room.setTotalPlaces(3);
+        room.setDormitory(dormitory);
+        room.setStudents(new HashSet<>());
+
+        when(roomRepository.findRoomById(id)).thenReturn(Optional.of(room));
+        when(roomRepository.save(room)).thenReturn(room);
+        when(roomMapper.toDto(room)).thenReturn(new RoomResponseDto());
+
+        // Не должно быть исключения
+        assertDoesNotThrow(() -> roomService.updatePatchRoom(id, request));
+    }
+
+    @Test
+    @DisplayName("validateRoomData - totalPlaces = null (пропускается валидация)")
+    void validateRoomData_totalPlacesNull() {
+        Long id = 1L;
+        RoomRequestDto request = new RoomRequestDto();
+        request.setNumber(200);
+        request.setTotalPlaces(null);
+
+        Dormitory dormitory = new Dormitory();
+        dormitory.setId(1L);
+
+        Room room = new Room();
+        room.setNumber(101);
+        room.setTotalPlaces(3);
+        room.setDormitory(dormitory);
+        room.setStudents(new HashSet<>());
+
+        when(roomRepository.findRoomById(id)).thenReturn(Optional.of(room));
+        when(roomRepository.existsByNumberAndDormitoryId(200, 1L)).thenReturn(false);
+        when(roomRepository.save(room)).thenReturn(room);
+        when(roomMapper.toDto(room)).thenReturn(new RoomResponseDto());
+
+        assertDoesNotThrow(() -> roomService.updatePatchRoom(id, request));
+    }
+
+    @Test
+    @DisplayName("validateRoomData - totalPlaces = 1 (минимальное значение - проходит валидацию)")
+    void validateRoomData_totalPlacesMin() {
+        Long id = 1L;
+        RoomRequestDto request = new RoomRequestDto();
+        request.setNumber(200);
+        request.setTotalPlaces(1); // минимальное допустимое
+
+        Dormitory dormitory = new Dormitory();
+        dormitory.setId(1L);
+
+        Room room = new Room();
+        room.setNumber(101);
+        room.setTotalPlaces(3);
+        room.setDormitory(dormitory);
+        room.setStudents(new HashSet<>());
+
+        when(roomRepository.findRoomById(id)).thenReturn(Optional.of(room));
+        when(roomRepository.existsByNumberAndDormitoryId(200, 1L)).thenReturn(false);
+        when(roomRepository.save(room)).thenReturn(room);
+        when(roomMapper.toDto(room)).thenReturn(new RoomResponseDto());
+
+        assertDoesNotThrow(() -> roomService.updatePatchRoom(id, request));
+        assertEquals(1, room.getTotalPlaces());
+    }
+
+    @Test
+    @DisplayName("validateRoomData - totalPlaces = 6 (максимальное значение - проходит валидацию)")
+    void validateRoomData_totalPlacesMax() {
+        Long id = 1L;
+        RoomRequestDto request = new RoomRequestDto();
+        request.setNumber(200);
+        request.setTotalPlaces(6); // максимальное допустимое
+
+        Dormitory dormitory = new Dormitory();
+        dormitory.setId(1L);
+
+        Room room = new Room();
+        room.setNumber(101);
+        room.setTotalPlaces(3);
+        room.setDormitory(dormitory);
+        room.setStudents(new HashSet<>());
+
+        when(roomRepository.findRoomById(id)).thenReturn(Optional.of(room));
+        when(roomRepository.existsByNumberAndDormitoryId(200, 1L)).thenReturn(false);
+        when(roomRepository.save(room)).thenReturn(room);
+        when(roomMapper.toDto(room)).thenReturn(new RoomResponseDto());
+
+        assertDoesNotThrow(() -> roomService.updatePatchRoom(id, request));
+        assertEquals(6, room.getTotalPlaces());
+    }
+
+    @Test
+    @DisplayName("validateRoomData - totalPlaces < 1 (валидация выбрасывает исключение)")
+    void validateRoomData_totalPlacesLessThanMin() {
+        Long id = 1L;
+        RoomRequestDto request = new RoomRequestDto();
+        request.setTotalPlaces(0); // меньше 1
+
+        Dormitory dormitory = new Dormitory();
+        Room room = new Room();
+        room.setNumber(101);
+        room.setTotalPlaces(3);
+        room.setDormitory(dormitory);
+        room.setStudents(new HashSet<>());
+
+        when(roomRepository.findRoomById(id)).thenReturn(Optional.of(room));
+
+        assertThrows(BadRequestException.class, () -> roomService.updatePatchRoom(id, request));
+    }
+
+    @Test
+    @DisplayName("updatePatchRoom - полное обновление (и номер и места)")
+    void updatePatchRoom_fullUpdate() {
+        Long id = 1L;
+        RoomRequestDto request = new RoomRequestDto();
+        request.setNumber(300);
+        request.setTotalPlaces(4);
+
+        Dormitory dormitory = new Dormitory();
+        dormitory.setId(1L);
+
+        Room room = new Room();
+        room.setNumber(101);
+        room.setTotalPlaces(2);
+        room.setDormitory(dormitory);
+        room.setStudents(new HashSet<>());
+
+        when(roomRepository.findRoomById(id)).thenReturn(Optional.of(room));
+        when(roomRepository.existsByNumberAndDormitoryId(300, 1L)).thenReturn(false);
+        when(roomRepository.save(room)).thenReturn(room);
+        when(roomMapper.toDto(room)).thenReturn(new RoomResponseDto());
+
+        roomService.updatePatchRoom(id, request);
+
+        assertEquals(300, room.getNumber());
+        assertEquals(4, room.getTotalPlaces());
+        verify(roomRepository).existsByNumberAndDormitoryId(300, 1L);
+        verify(roomRepository).save(room);
+    }
 }
