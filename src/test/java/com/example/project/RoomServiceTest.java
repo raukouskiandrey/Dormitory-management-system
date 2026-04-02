@@ -656,5 +656,5 @@ class RoomServiceTest {
 
         assertTrue(ex.getMessage().contains("меньше текущего кол-ва студентов"));
     }
-    
+
 }
