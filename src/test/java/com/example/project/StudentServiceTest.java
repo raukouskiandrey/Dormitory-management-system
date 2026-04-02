@@ -755,4 +755,113 @@ class StudentServiceTest {
         assertEquals(room, s1.getRoom());
         verify(studentRepository).saveAll(any());
     }
+
+    @Test
+    @DisplayName("updatePatchStudent - возраст null и имя null (проверка веток false)")
+    void updatePatchStudent_nullFieldsCoverage() {
+        Long id = 1L;
+        StudentRequestDto request = new StudentRequestDto();
+        request.setAge(null);  // Чтобы пропустить первый if полностью
+        request.setName(null); // Чтобы пропустить блок установки имени
+
+        Student student = new Student();
+        student.setName("OldName");
+
+        when(studentRepository.findStudentById(id)).thenReturn(Optional.of(student));
+        when(studentMapper.toDto(any())).thenReturn(new StudentResponseDto());
+
+        studentService.updatePatchStudent(id, request);
+
+        assertEquals("OldName", student.getName()); // Имя не должно измениться
+        verify(studentRepository).save(student);
+    }
+
+    @Test
+    @DisplayName("updatePatchStudent - возраст слишком большой (ветка age > MAX_AGE)")
+    void updatePatchStudent_tooOld() {
+        Long id = 1L;
+        StudentRequestDto request = new StudentRequestDto();
+        request.setAge(101); // Граница MAX_AGE
+
+        when(studentRepository.findStudentById(id)).thenReturn(Optional.of(new Student()));
+
+        assertThrows(BadRequestException.class, () -> studentService.updatePatchStudent(id, request));
+    }
+
+    @Test
+    @DisplayName("filterStudentsWithJpqlPaged - успех только с CHS (violationType = null)")
+    void filterStudents_onlyChs() {
+        Integer chs = 1;
+        ViolationType type = null; // Проверка ветки null в buildCacheKey
+
+        // Важно: вызываем реальный метод computeIfAbsent или заставляем мок выполнить лямбду
+        when(cacheManager.computeIfAbsent(any(), any())).thenAnswer(invocation -> {
+            return ((java.util.function.Supplier<?>) invocation.getArgument(1)).get();
+        });
+
+        Page<Student> page = new PageImpl<>(List.of(new Student()));
+        when(studentRepository.findStudentsByComplexCriteriaJpql(eq(chs), eq(type), any())).thenReturn(page);
+
+        studentService.filterStudentsWithJpqlPaged(chs, type, 0, 10);
+
+        verify(studentRepository).findStudentsByComplexCriteriaJpql(eq(chs), eq(type), any());
+    }
+
+    @Test
+    @DisplayName("assignStudentsToRoom - полное покрытие условий (уже в комнате, смена комнаты, без комнаты)")
+    void assignStudentsToRoom_complexCoverage() {
+        Long roomId = 1L;
+        Room targetRoom = new Room();
+        targetRoom.setId(roomId);
+        targetRoom.setTotalPlaces(10);
+        targetRoom.setStudents(new HashSet<>());
+
+        // 1. Студент уже в этой комнате
+        Student s1 = new Student();
+        s1.setId(1L);
+        s1.setRoom(targetRoom);
+
+        // 2. Студент в другой комнате
+        Room otherRoom = new Room();
+        otherRoom.setId(99L);
+        otherRoom.setStudents(new HashSet<>());
+        Student s2 = new Student();
+        s2.setId(2L);
+        s2.setRoom(otherRoom);
+        otherRoom.getStudents().add(s2);
+
+        // Подготовка DTO
+        StudentUpdateRequest req1 = new StudentUpdateRequest(); req1.setId(1L);
+        StudentUpdateRequest req2 = new StudentUpdateRequest(); req2.setId(2L);
+
+        when(roomService.findRoomEntityById(roomId)).thenReturn(targetRoom);
+        when(studentRepository.findStudentById(1L)).thenReturn(Optional.of(s1));
+        when(studentRepository.findStudentById(2L)).thenReturn(Optional.of(s2));
+
+        studentService.assignStudentsToRoom(List.of(req1, req2), roomId);
+
+        // Проверки
+        assertFalse(otherRoom.getStudents().contains(s2), "Студент должен быть удален из старой комнаты");
+        assertTrue(targetRoom.getStudents().contains(s2), "Студент должен быть добавлен в новую комнату");
+        verify(studentRepository).saveAll(any());
+    }
+
+    @Test
+    @DisplayName("filterStudentsWithNativePaged - ошибка когда оба фильтра null")
+    void filterNative_bothNull() {
+        assertThrows(BadRequestException.class, () ->
+                studentService.filterStudentsWithNativePaged(null, null, 0, 10));
+    }
+
+    @Test
+    @DisplayName("filterStudentsWithNativePaged - успех только с violationType (CHS = null)")
+    void filterNative_onlyViolation() {
+        when(cacheManager.computeIfAbsent(any(), any())).thenAnswer(inv -> ((java.util.function.Supplier<?>) inv.getArgument(1)).get());
+
+        // CHS = null, Violation != null
+        studentService.filterStudentsWithNativePaged(null, "SMOKING", 0, 10);
+
+        verify(studentRepository).findStudentsByComplexCriteriaNative(eq(null), eq("SMOKING"), any());
+    }
+
 }
