@@ -232,4 +232,128 @@ class ContractServiceTest {
 
         assertThrows(ResourceNotFoundException.class, () -> contractService.findContactById(id));
     }
+
+    @Test
+    @DisplayName("updatePatchContract - все поля null (пустой PATCH запрос)")
+    void updatePatchContract_allFieldsNull() {
+        Long id = 1L;
+        ContractRequestDto request = new ContractRequestDto();
+        // Все поля остаются null
+
+        Contract contract = new Contract();
+        contract.setNumber(11111);
+        contract.setStartDate("2024-01-01");
+        contract.setEndDate("2024-12-31");
+
+        when(contractRepository.findContractById(id)).thenReturn(Optional.of(contract));
+        when(contractRepository.save(any(Contract.class))).thenReturn(contract);
+        when(contractMapper.toDto(contract)).thenReturn(new ContractResponseDto());
+
+        // Должно выполниться успешно без изменений
+        assertDoesNotThrow(() -> contractService.updatePatchContract(id, request));
+
+        // Проверяем, что значения не изменились
+        assertEquals(11111, contract.getNumber());
+        assertEquals("2024-01-01", contract.getStartDate());
+        assertEquals("2024-12-31", contract.getEndDate());
+
+        verify(contractRepository).save(contract);
+    }
+
+    @Test
+    @DisplayName("updatePatchContract - обновление только номера, даты null")
+    void updatePatchContract_onlyNumberUpdate() {
+        Long id = 1L;
+        ContractRequestDto request = new ContractRequestDto();
+        request.setNumber(99999);
+        // startDate и endDate остаются null
+
+        Contract contract = new Contract();
+        contract.setNumber(11111);
+        contract.setStartDate("2024-01-01");
+        contract.setEndDate("2024-12-31");
+
+        when(contractRepository.findContractById(id)).thenReturn(Optional.of(contract));
+        when(contractRepository.save(any(Contract.class))).thenReturn(contract);
+        when(contractMapper.toDto(contract)).thenReturn(new ContractResponseDto());
+
+        contractService.updatePatchContract(id, request);
+
+        assertEquals(99999, contract.getNumber());
+        assertEquals("2024-01-01", contract.getStartDate()); // не изменилась
+        assertEquals("2024-12-31", contract.getEndDate());   // не изменилась
+        verify(contractRepository).save(contract);
+    }
+
+    @Test
+    @DisplayName("updatePatchContract - обновление только startDate")
+    void updatePatchContract_onlyStartDateUpdate() {
+        Long id = 1L;
+        ContractRequestDto request = new ContractRequestDto();
+        request.setStartDate("2024-06-01");
+        // number и endDate остаются null
+
+        Contract contract = new Contract();
+        contract.setNumber(11111);
+        contract.setStartDate("2024-01-01");
+        contract.setEndDate("2024-12-31");
+
+        when(contractRepository.findContractById(id)).thenReturn(Optional.of(contract));
+        when(contractRepository.save(any(Contract.class))).thenReturn(contract);
+        when(contractMapper.toDto(contract)).thenReturn(new ContractResponseDto());
+
+        contractService.updatePatchContract(id, request);
+
+        assertEquals("2024-06-01", contract.getStartDate());
+        assertEquals(11111, contract.getNumber());     // не изменился
+        assertEquals("2024-12-31", contract.getEndDate()); // не изменилась
+        verify(contractRepository).save(contract);
+    }
+
+    @Test
+    @DisplayName("updatePatchContract - обновление только endDate")
+    void updatePatchContract_onlyEndDateUpdate() {
+        Long id = 1L;
+        ContractRequestDto request = new ContractRequestDto();
+        request.setEndDate("2024-11-30");
+        // number и startDate остаются null
+
+        Contract contract = new Contract();
+        contract.setNumber(11111);
+        contract.setStartDate("2024-01-01");
+        contract.setEndDate("2024-12-31");
+
+        when(contractRepository.findContractById(id)).thenReturn(Optional.of(contract));
+        when(contractRepository.save(any(Contract.class))).thenReturn(contract);
+        when(contractMapper.toDto(contract)).thenReturn(new ContractResponseDto());
+
+        contractService.updatePatchContract(id, request);
+
+        assertEquals("2024-11-30", contract.getEndDate());
+        assertEquals(11111, contract.getNumber());         // не изменился
+        assertEquals("2024-01-01", contract.getStartDate()); // не изменилась
+        verify(contractRepository).save(contract);
+    }
+
+    @Test
+    @DisplayName("updatePatchContract - валидация дат после PATCH обновления")
+    void updatePatchContract_validationAfterPatch() {
+        Long id = 1L;
+        ContractRequestDto request = new ContractRequestDto();
+        request.setStartDate("2024-12-31");
+        request.setEndDate("2024-01-01"); // endDate раньше startDate
+
+        Contract contract = new Contract();
+        contract.setNumber(11111);
+        contract.setStartDate("2024-01-01");
+        contract.setEndDate("2024-12-31");
+
+        when(contractRepository.findContractById(id)).thenReturn(Optional.of(contract));
+
+        // Должна выброситься ошибка валидации
+        assertThrows(BadRequestException.class, () -> contractService.updatePatchContract(id, request));
+
+        // save не должен вызываться
+        verify(contractRepository, never()).save(any());
+    }
 }

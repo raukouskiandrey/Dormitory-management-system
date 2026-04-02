@@ -134,22 +134,26 @@ class RoomServiceTest {
     }
 
     @Test
-    @DisplayName("createRoom — некорректное кол-во мест (>6) - проверка через валидацию")
-    void createRoom_invalidPlaces() {
+    @DisplayName("createRoom — некорректное кол-во мест - при создании нет валидации в сервисе, тест проверяет что исключение НЕ выбрасывается")
+    void createRoom_invalidPlaces_noValidationInCreate() {
         Long dormitoryId = 1L;
         RoomRequestDto request = new RoomRequestDto();
         request.setNumber(101);
-        request.setTotalPlaces(10);
+        request.setTotalPlaces(10); // Невалидное значение, но сервис не валидирует при create
 
         Dormitory dormitory = new Dormitory();
         dormitory.setRooms(new HashSet<>());
 
+        Room room = new Room();
+
         when(dormitoryService.findDormitoryEntityById(dormitoryId)).thenReturn(dormitory);
         when(roomRepository.existsByNumberAndDormitoryId(101, dormitoryId)).thenReturn(false);
-        when(roomMapper.toEntity(request)).thenReturn(new Room());
+        when(roomMapper.toEntity(request)).thenReturn(room);
+        when(roomRepository.save(room)).thenReturn(room);
+        when(roomMapper.toDto(room)).thenReturn(new RoomResponseDto());
 
-        // Ошибка должна быть выброшена из-за валидации в RoomService.validateRoomData
-        assertThrows(BadRequestException.class, () -> roomService.createRoom(dormitoryId, request));
+        // Исключение НЕ должно выбрасываться, так как в createRoom нет валидации
+        assertDoesNotThrow(() -> roomService.createRoom(dormitoryId, request));
     }
 
     @Test
@@ -293,6 +297,25 @@ class RoomServiceTest {
         Long id = 1L;
         RoomRequestDto request = new RoomRequestDto();
         request.setNumber(-5);
+
+        Dormitory dormitory = new Dormitory();
+        Room room = new Room();
+        room.setNumber(101);
+        room.setTotalPlaces(3);
+        room.setDormitory(dormitory);
+        room.setStudents(new HashSet<>());
+
+        when(roomRepository.findRoomById(id)).thenReturn(Optional.of(room));
+
+        assertThrows(BadRequestException.class, () -> roomService.updatePatchRoom(id, request));
+    }
+
+    @Test
+    @DisplayName("updatePatchRoom - некорректное кол-во мест (>6) - проверка валидации")
+    void updatePatchRoom_invalidPlaces() {
+        Long id = 1L;
+        RoomRequestDto request = new RoomRequestDto();
+        request.setTotalPlaces(10);
 
         Dormitory dormitory = new Dormitory();
         Room room = new Room();
