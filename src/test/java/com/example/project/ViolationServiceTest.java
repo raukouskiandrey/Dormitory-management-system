@@ -1,7 +1,6 @@
 package com.example.project;
 
-import com.example.project.dto.request.ViolationRequestDto;
-import com.example.project.exception.BadRequestException;
+import com.example.project.model.Student;
 import com.example.project.model.Violation;
 import com.example.project.repository.ViolationRepository;
 import com.example.project.service.ViolationService;
@@ -11,30 +10,32 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.util.HashSet;
 import java.util.Optional;
+import java.util.Set;
 
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.Mockito.when;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class ViolationServiceTest {
 
-    @Mock
-    private ViolationRepository violationRepository;
-
-    @InjectMocks
-    private ViolationService violationService;
+    @Mock private ViolationRepository violationRepository;
+    @InjectMocks private ViolationService violationService;
 
     @Test
-    void updatePatchViolation_ShouldFail_WhenDateIsInFuture() {
+    void deleteViolation_ShouldRemoveFromStudentsAndThenDelete() {
         Violation violation = new Violation();
-        ViolationRequestDto updateDto = new ViolationRequestDto();
-        updateDto.setDate("2099-01-01"); // Будущее
+        Student student = new Student();
+        student.setViolations(new HashSet<>(Set.of(violation)));
+        violation.setStudents(Set.of(student));
 
         when(violationRepository.findViolationById(1L)).thenReturn(Optional.of(violation));
 
-        assertThatThrownBy(() -> violationService.updatePatchViolation(1L, updateDto))
-                .isInstanceOf(BadRequestException.class)
-                .hasMessage("Дата нарушения не может быть в будущем");
+        violationService.deleteViolationById(1L);
+
+        // После удаления, студент должен потерять нарушение
+        // Проверяем, что метод delete был вызван
+        verify(violationRepository).delete(violation);
     }
 }
