@@ -345,20 +345,6 @@ class StudentServiceTest {
     }
 
     @Test
-    @DisplayName("updatePatchStudent - невалидный возраст")
-    void updatePatchStudent_invalidAge() {
-        Long id = 1L;
-        StudentRequestDto request = new StudentRequestDto();
-        request.setAge(5);
-
-        Student student = new Student();
-
-        when(studentRepository.findStudentById(id)).thenReturn(Optional.of(student));
-
-        assertThrows(BadRequestException.class, () -> studentService.updatePatchStudent(id, request));
-    }
-
-    @Test
     @DisplayName("creationStudentNoTx - успешно")
     void creationStudentNoTx_success() {
         StudentCreationDto creation = new StudentCreationDto();
@@ -654,5 +640,119 @@ class StudentServiceTest {
         when(violationService.findViolationById(violationId)).thenReturn(violation);
 
         assertThrows(BadRequestException.class, () -> studentService.removeViolationFromStudent(studentId, violationId));
+    }
+
+    @Test
+    @DisplayName("assignStudentToRoom - перевод из старой комнаты в новую")
+    void assignStudentToRoom_changeRoom() {
+        Long studentId = 1L;
+        Long newRoomId = 2L;
+
+        Room oldRoom = new Room();
+        oldRoom.setId(10L);
+        oldRoom.setStudents(new HashSet<>());
+
+        Room newRoom = new Room();
+        newRoom.setId(newRoomId);
+        newRoom.setTotalPlaces(5);
+        newRoom.setStudents(new HashSet<>());
+
+        Student student = new Student();
+        student.setRoom(oldRoom);
+        oldRoom.getStudents().add(student);
+
+        when(studentRepository.findStudentById(studentId)).thenReturn(Optional.of(student));
+        when(roomService.findRoomEntityById(newRoomId)).thenReturn(newRoom);
+        when(studentMapper.toDto(any())).thenReturn(new StudentResponseDto());
+
+        studentService.assignStudentToRoom(studentId, newRoomId);
+
+        assertFalse(oldRoom.getStudents().contains(student));
+        assertTrue(newRoom.getStudents().contains(student));
+        assertEquals(newRoom, student.getRoom());
+    }
+
+    @Test
+    @DisplayName("updatePatchStudent - ошибка: невалидный возраст")
+    void updatePatchStudent_invalidAge() {
+        Long id = 1L;
+        StudentRequestDto request = new StudentRequestDto();
+        request.setAge(10); // Слишком молод
+
+        when(studentRepository.findStudentById(id)).thenReturn(Optional.of(new Student()));
+
+        assertThrows(BadRequestException.class, () -> studentService.updatePatchStudent(id, request));
+    }
+
+    @Test
+    @DisplayName("updatePatchStudent - обновление всех полей сразу")
+    void updatePatchStudent_allFields() {
+        Long id = 1L;
+        StudentRequestDto request = new StudentRequestDto();
+        request.setName("NewName");
+        request.setSurname("NewSurname");
+        request.setPatronymic("NewPatr");
+        request.setPhoneNumber("8800");
+        request.setAge(20);
+        request.setChs(1);
+
+        Student student = new Student();
+        when(studentRepository.findStudentById(id)).thenReturn(Optional.of(student));
+        when(studentMapper.toDto(any())).thenReturn(new StudentResponseDto());
+
+        studentService.updatePatchStudent(id, request);
+
+        assertEquals("NewName", student.getName());
+        assertEquals("NewSurname", student.getSurname());
+        assertEquals(20, student.getAge());
+    }
+
+    @Test
+    @DisplayName("creationStudentNoTx - выброс исключения для проверки транзакции")
+    void creationStudentNoTx_triggerException() {
+        StudentCreationDto dto = new StudentCreationDto();
+        dto.setContractStartDate("2023-01-01");
+        dto.setContractEndDate("2023-12-31");
+        dto.setInitiateProblem(true); // Активируем ошибку
+
+        when(contractRepository.existsByNumber(any())).thenReturn(false);
+        when(roomService.findRoomEntityById(any())).thenReturn(new Room());
+
+        assertThrows(RuntimeException.class, () -> studentService.creationStudentNoTx(dto));
+    }
+
+    @Test
+    @DisplayName("filterStudentsWithJpqlPaged - ошибка: нет фильтров")
+    void filterStudents_noFiltersError() {
+        assertThrows(BadRequestException.class, () ->
+                studentService.filterStudentsWithJpqlPaged(null, null, 0, 10));
+
+        assertThrows(BadRequestException.class, () ->
+                studentService.filterStudentsWithNativePaged(null, null, 0, 10));
+    }
+
+    @Test
+    @DisplayName("assignStudentsToRoom - успешное массовое назначение и пропуск тех, кто уже в комнате")
+    void assignStudentsToRoom_fullCoverage() {
+        Long roomId = 1L;
+        Room room = new Room();
+        room.setId(roomId);
+        room.setTotalPlaces(10);
+        room.setStudents(new HashSet<>());
+
+        Student s1 = new Student(); s1.setId(1L); // Новый
+        Student s2 = new Student(); s2.setId(2L); s2.setRoom(room); // Уже тут
+
+        StudentUpdateRequest req1 = new StudentUpdateRequest(); req1.setId(1L);
+        StudentUpdateRequest req2 = new StudentUpdateRequest(); req2.setId(2L);
+
+        when(roomService.findRoomEntityById(roomId)).thenReturn(room);
+        when(studentRepository.findStudentById(1L)).thenReturn(Optional.of(s1));
+        when(studentRepository.findStudentById(2L)).thenReturn(Optional.of(s2));
+
+        studentService.assignStudentsToRoom(List.of(req1, req2), roomId);
+
+        assertEquals(room, s1.getRoom());
+        verify(studentRepository).saveAll(any());
     }
 }
