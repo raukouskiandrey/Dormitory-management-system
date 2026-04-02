@@ -2,6 +2,8 @@ package com.example.project.controller;
 
 import com.example.project.dto.request.StudentCreationDto;
 import com.example.project.dto.request.StudentRequestDto;
+import com.example.project.dto.request.StudentUpdateRequest;
+import com.example.project.dto.request.ViolationBulkRequest;
 import com.example.project.dto.response.StudentResponseDto;
 import com.example.project.model.ViolationType;
 import com.example.project.service.StudentService;
@@ -22,6 +24,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+
+import java.util.List;
 
 import static org.springframework.http.ResponseEntity.ok;
 
@@ -66,6 +70,17 @@ public class StudentController {
         return ok(studentService.findStudentsByAgePaged(age, page, size));
     }
 
+    @PostMapping("/{roomId}/bulk-assign")
+    @Operation(
+            summary = "Заселить студентов в комнату",
+            description = "Устанавливает связь между студентами и комнатой")
+    public ResponseEntity<List<StudentResponseDto>> assignStudentsToRoom(
+            @Parameter(description = "ID целевой комнаты") @PathVariable Long roomId,
+            @Parameter(description = "Список студентов на заселение") @RequestBody List<StudentUpdateRequest> studentsId) {
+        List<StudentResponseDto> updatedStudents = studentService.assignStudentsToRoom(studentsId, roomId);
+        return ok(updatedStudents);
+    }
+
     @PostMapping("/{studentId}/assign-to-room/{roomId}")
     @Operation(
             summary = "Заселить студента в комнату",
@@ -92,6 +107,14 @@ public class StudentController {
             @PathVariable Long violationId) {
         StudentResponseDto updatedStudent = studentService.addViolationToStudent(studentId, violationId);
         return ok(updatedStudent);
+    }
+
+    @DeleteMapping("/{studentId}/violations/{violationId}")
+    @Operation(summary = "Удалить нарушение у студента", description = "Разрывает связь между студентом и нарушением")
+    public ResponseEntity<StudentResponseDto> removeViolation(
+            @PathVariable Long studentId,
+            @PathVariable Long violationId) {
+        return ResponseEntity.ok(studentService.removeViolationFromStudent(studentId, violationId));
     }
 
     @PostMapping("/{roomId}")
@@ -176,5 +199,17 @@ public class StudentController {
             @RequestParam(defaultValue = "10") int size) {
 
         return ResponseEntity.ok(studentService.filterStudentsWithNativePaged(chs, violationType, page, size));
+    }
+
+    @PostMapping("/bulk/violations/noTx")
+    public ResponseEntity<List<StudentResponseDto>> createViolationsBulkNoTx(
+            @RequestBody List<ViolationBulkRequest> requests) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(studentService.assignViolationsToStudentsNoTx(requests));
+    }
+
+    @PostMapping("/bulk/violations/withTx")
+    public ResponseEntity<List<StudentResponseDto>> createViolationsBulkWithTx(
+            @RequestBody List<ViolationBulkRequest> requests) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(studentService.assignViolationsToStudentsWithTx(requests));
     }
 }

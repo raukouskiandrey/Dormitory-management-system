@@ -4,6 +4,8 @@ import com.example.project.cache.CacheKey;
 import com.example.project.cache.CacheManager;
 import com.example.project.dto.request.StudentCreationDto;
 import com.example.project.dto.request.StudentRequestDto;
+import com.example.project.dto.request.StudentUpdateRequest;
+import com.example.project.dto.request.ViolationBulkRequest;
 import com.example.project.dto.response.StudentResponseDto;
 import com.example.project.exception.BadRequestException;
 import com.example.project.exception.ResourceNotFoundException;
@@ -15,6 +17,7 @@ import com.example.project.model.Violation;
 import com.example.project.mapper.StudentMapper;
 import com.example.project.repository.ContractRepository;
 import com.example.project.repository.StudentRepository;
+import com.example.project.repository.ViolationRepository;
 import jakarta.transaction.Transactional;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -23,6 +26,8 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
+import java.util.*;
+import java.util.stream.Stream;
 
 @Service
 public class StudentService {
@@ -38,18 +43,20 @@ public class StudentService {
     private final ContractRepository contractRepository;
     private final CacheManager cacheManager;
     private final ViolationService violationService;
+    private final ViolationRepository violationRepository;
 
     public StudentService(StudentMapper studentMapper,
                           StudentRepository studentRepository,
                           RoomService roomService,
                           ContractRepository contractRepository,
-                          CacheManager cacheManager, ViolationService violationService) {
+                          CacheManager cacheManager, ViolationService violationService, ViolationRepository violationRepository) {
         this.studentMapper = studentMapper;
         this.studentRepository = studentRepository;
         this.roomService = roomService;
         this.contractRepository = contractRepository;
         this.cacheManager = cacheManager;
         this.violationService = violationService;
+        this.violationRepository = violationRepository;
     }
 
     public Page<StudentResponseDto> findStudentsPaged(int page, int size) {
@@ -137,6 +144,26 @@ public class StudentService {
         violation.getStudents().add(student);
 
         studentRepository.save(student);
+        cacheManager.invalidate(Student.class);
+        return studentMapper.toDto(student);
+    }
+
+    @Transactional
+    public StudentResponseDto removeViolationFromStudent(Long studentId, Long violationId) {
+        Student student = studentRepository.findStudentById(studentId)
+                .orElseThrow(() -> new ResourceNotFoundException("Студент не найден: " + studentId));
+
+        Violation violation = violationService.findViolationById(violationId);
+
+        if (!student.getViolations().contains(violation)) {
+            throw new BadRequestException("У этого студента нет такого нарушения");
+        }
+
+        student.getViolations().remove(violation);
+        violation.getStudents().remove(student);
+
+        studentRepository.save(student);
+
         cacheManager.invalidate(Student.class);
         return studentMapper.toDto(student);
     }
@@ -294,5 +321,66 @@ public class StudentService {
         String normalizedViolationType = violationType != null ? violationType.toString() : null;
         return new CacheKey(Student.class, "filterStudents",
                 chs, normalizedViolationType, page, size);
+    }
+
+    @Transactional
+    public List<StudentResponseDto> assignStudentsToRoom(List<StudentUpdateRequest> studentsId, Long roomId) {
+        Room room = roomService.findRoomEntityById(roomId);
+        int totalAfterAssign = room.getStudents().size() + studentsId.size();
+        if (totalAfterAssign > room.getTotalPlaces()) {
+            throw new BadRequestException("В комнате недостаточно мест для всей группы. "
+                    + "Свободно: " + (room.getTotalPlaces() - room.getStudents().size()));
+        }
+        List<Student> students = studentsId.stream().map(StudentUpdateRequest -> studentRepository.findStudentById(StudentUpdateRequest.getId())
+                .orElseThrow(() -> new ResourceNotFoundException(STUDENT_NOT_FOUND + StudentUpdateRequest.getId())))
+                .toList();
+        for (Student student : students) {
+            if (student.getRoom() != null && student.getRoom().getId().equals(roomId)) {
+                continue;
+            }
+
+            if (student.getRoom() != null) {
+                student.getRoom().getStudents().remove(student);
+            }
+
+            student.setRoom(room);
+            room.getStudents().add(student);
+        }
+        studentRepository.saveAll(students);
+        cacheManager.invalidate(Student.class);
+        return studentMapper.toDtoList(students);
+    }
+
+    public List<StudentResponseDto> assignViolationsToStudentsNoTx(List<ViolationBulkRequest> requests) {
+        if (requests == null || requests.isEmpty()) {
+            throw new IllegalArgumentException("Список нарушений не может быть пустым");
+        }
+
+        Map<Long, Student> studentsCache = new HashMap<>();
+
+        for (ViolationBulkRequest dto : requests) {
+            Student student = studentRepository.findById(dto.getStudentId())
+                    .orElseThrow(() -> new ResourceNotFoundException("Студент не найден с ID: " + dto.getStudentId()));
+
+            Violation violation = Violation.builder()
+                    .date(dto.getDate())
+                    .violationType(dto.getType())
+                    .students(new HashSet<>(Set.of(student)))
+                    .build();
+
+            student.getViolations().add(violation);
+
+            violationRepository.save(violation);
+            studentRepository.save(student);
+
+            studentsCache.put(student.getId(), student);
+        }
+
+        return studentsCache.values().stream().map(studentMapper::toDto).toList();
+    }
+
+    @Transactional
+    public List<StudentResponseDto> assignViolationsToStudentsWithTx(List<ViolationBulkRequest> requests) {
+        return assignViolationsToStudentsNoTx(requests);
     }
 }
