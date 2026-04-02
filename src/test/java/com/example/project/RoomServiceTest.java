@@ -612,4 +612,49 @@ class RoomServiceTest {
         verify(roomRepository).existsByNumberAndDormitoryId(300, 1L);
         verify(roomRepository).save(room);
     }
+
+    @Test
+    @DisplayName("updatePatchRoom - номер в запросе совпадает с текущим (ветка false)")
+    void updatePatchRoom_sameNumber() {
+        Long id = 1L;
+        RoomRequestDto request = new RoomRequestDto();
+        request.setNumber(101); // Тот же номер, что и в базе
+
+        Room room = new Room();
+        room.setNumber(101);
+        room.setDormitory(new Dormitory());
+        room.getDormitory().setId(1L);
+        room.setStudents(new HashSet<>());
+
+        when(roomRepository.findRoomById(id)).thenReturn(Optional.of(room));
+        when(roomRepository.save(room)).thenReturn(room);
+        when(roomMapper.toDto(room)).thenReturn(new RoomResponseDto());
+
+        roomService.updatePatchRoom(id, request);
+
+        // Проверяем, что поиск дубликата в БД НЕ вызывался
+        verify(roomRepository, never()).existsByNumberAndDormitoryId(anyInt(), anyLong());
+        verify(roomRepository).save(room);
+    }
+
+    @Test
+    @DisplayName("updatePatchRoom - ошибка: лимит мест меньше количества проживающих")
+    void updatePatchRoom_limitBelowCurrentStudents() {
+        Long id = 1L;
+        RoomRequestDto request = new RoomRequestDto();
+        request.setTotalPlaces(1); // Пытаемся поставить 1 место
+
+        Room room = new Room();
+        room.setNumber(101);
+        room.setStudents(Set.of(new Student(), new Student())); // В комнате уже 2 студента
+
+        when(roomRepository.findRoomById(id)).thenReturn(Optional.of(room));
+
+        // Проверяем текст ошибки, чтобы убедиться, что зашли именно в эту ветку
+        BadRequestException ex = assertThrows(BadRequestException.class,
+                () -> roomService.updatePatchRoom(id, request));
+
+        assertTrue(ex.getMessage().contains("меньше текущего кол-ва студентов"));
+    }
+    
 }
