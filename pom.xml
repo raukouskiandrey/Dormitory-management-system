@@ -29,11 +29,10 @@
             **/dto/**,
             **/exception/**,
             **/repository/**,
-            **/config/**,
             **/mapper/**,
             **/controller/**,
             **/cache/**,
-            **/aspect/**,
+            **/aop/**,
             **/*Application.java
         </sonar.coverage.exclusions>
     </properties>

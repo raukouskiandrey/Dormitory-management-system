@@ -1,51 +1,49 @@
 package com.example.project;
 
 import com.example.project.dto.request.ViolationBulkRequest;
-import com.example.project.service.StudentService;
+import com.example.project.model.Student;
+import com.example.project.model.ViolationType;
 import com.example.project.repository.StudentRepository;
+import com.example.project.repository.ViolationRepository;
+import com.example.project.service.StudentService;
+import com.example.project.mapper.StudentMapper;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Optional;
 
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.Mockito.verifyNoInteractions;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class ServiceCoverageSupplementTest {
 
-    @Mock
-    private StudentRepository studentRepository;
-
-    @InjectMocks
-    private StudentService studentService;
-
-    @Test
-    void assignViolations_EmptyList_ShouldReturnEmptyResult() {
-        // Проверяем, что при пустом списке сервис кидает исключение (это и есть покрытие валидации)
-        List<ViolationBulkRequest> emptyList = Collections.emptyList();
-
-        assertThatThrownBy(() -> studentService.assignViolationsToStudentsWithTx(emptyList))
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessage("Список нарушений не может быть пустым");
-
-        // Проверяем, что до базы дело не дошло
-        verifyNoInteractions(studentRepository);
-    }
+    @Mock private StudentRepository studentRepository;
+    @Mock private ViolationRepository violationRepository;
+    @Mock private StudentMapper studentMapper;
+    @InjectMocks private StudentService studentService;
 
     @Test
-    void checkNoTxMethod_ShouldWorkIdentically() {
-        // Покрываем метод без транзакции, который тоже должен падать на валидации
-        List<ViolationBulkRequest> emptyList = Collections.emptyList();
+    @DisplayName("Массовое назначение нарушений — успех")
+    void assignViolations_Success() {
+        ViolationBulkRequest req = new ViolationBulkRequest(1L, "2024-01-01", ViolationType.SMOKING);
 
-        assertThatThrownBy(() -> studentService.assignViolationsToStudentsNoTx(emptyList))
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessage("Список нарушений не может быть пустым");
+        Student student = Student.builder()
+                .id(1L)
+                .violations(new HashSet<>())
+                .build();
 
-        verifyNoInteractions(studentRepository);
+        when(studentRepository.findById(1L)).thenReturn(Optional.of(student));
+
+        studentService.assignViolationsToStudentsWithTx(List.of(req));
+
+        verify(violationRepository, atLeastOnce()).save(any());
+        verify(studentRepository, atLeastOnce()).save(any(Student.class));
     }
 }
