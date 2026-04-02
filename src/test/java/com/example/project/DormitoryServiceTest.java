@@ -473,4 +473,30 @@ class DormitoryServiceTest {
         verify(dormitoryRepository).existsByNameAndAddress("New Name Only", "Old Address");
         verify(dormitoryRepository).save(dormitory);
     }
+
+    @Test
+    @DisplayName("updateDormitory - меняется только адрес (имя не меняется)")
+    void updateDormitory_onlyAddressChanged() {
+        Long id = 1L;
+        DormitoryRequestDto request = new DormitoryRequestDto();
+        request.setName("Old Name");     // имя не меняется
+        request.setAddress("New Address"); // адрес меняется
+
+        Dormitory dormitory = new Dormitory();
+        dormitory.setName("Old Name");
+        dormitory.setAddress("Old Address");
+
+        when(dormitoryRepository.findDormitoryById(id)).thenReturn(Optional.of(dormitory));
+        // Проверка уникальности: старое имя + новый адрес
+        when(dormitoryRepository.existsByNameAndAddress("Old Name", "New Address")).thenReturn(false);
+        when(dormitoryRepository.save(dormitory)).thenReturn(dormitory);
+        when(dormitoryMapper.toDto(dormitory)).thenReturn(new DormitoryResponseDto());
+
+        dormitoryService.updateDormitory(id, request);
+
+        assertEquals("Old Name", dormitory.getName());     // не изменилось
+        assertEquals("New Address", dormitory.getAddress());
+        verify(dormitoryRepository).existsByNameAndAddress("Old Name", "New Address");
+        verify(dormitoryRepository).save(dormitory);
+    }
 }
