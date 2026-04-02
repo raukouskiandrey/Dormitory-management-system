@@ -1,7 +1,6 @@
 package com.example.project;
 
 import com.example.project.dto.request.ViolationBulkRequest;
-import com.example.project.model.ViolationType;
 import com.example.project.service.StudentService;
 import com.example.project.repository.StudentRepository;
 import org.junit.jupiter.api.Test;
@@ -13,7 +12,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import java.util.Collections;
 import java.util.List;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.verifyNoInteractions;
 
 @ExtendWith(MockitoExtension.class)
@@ -27,21 +26,26 @@ class ServiceCoverageSupplementTest {
 
     @Test
     void assignViolations_EmptyList_ShouldReturnEmptyResult() {
-        // Проверяем поведение при пустом списке (граничный случай)
+        // Проверяем, что при пустом списке сервис кидает исключение (это и есть покрытие валидации)
         List<ViolationBulkRequest> emptyList = Collections.emptyList();
 
-        var result = studentService.assignViolationsToStudentsWithTx(emptyList);
+        assertThatThrownBy(() -> studentService.assignViolationsToStudentsWithTx(emptyList))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("Список нарушений не может быть пустым");
 
-        assertThat(result).isEmpty();
-        // Проверяем, что к репозиторию даже не обращались
+        // Проверяем, что до базы дело не дошло
         verifyNoInteractions(studentRepository);
     }
 
     @Test
     void checkNoTxMethod_ShouldWorkIdentically() {
-        // Покрываем метод без транзакции для статистики покрытия
+        // Покрываем метод без транзакции, который тоже должен падать на валидации
         List<ViolationBulkRequest> emptyList = Collections.emptyList();
-        var result = studentService.assignViolationsToStudentsNoTx(emptyList);
-        assertThat(result).isEmpty();
+
+        assertThatThrownBy(() -> studentService.assignViolationsToStudentsNoTx(emptyList))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("Список нарушений не может быть пустым");
+
+        verifyNoInteractions(studentRepository);
     }
 }
