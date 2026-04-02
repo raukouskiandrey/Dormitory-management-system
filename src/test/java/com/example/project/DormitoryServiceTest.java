@@ -235,4 +235,152 @@ class DormitoryServiceTest {
 
         assertThrows(ResourceNotFoundException.class, () -> dormitoryService.deleteDormitoryById(id));
     }
+    @Test
+    @DisplayName("updateDormitory - обновление без конфликта (имя и адрес свободны)")
+    void updateDormitory_noConflict_success() {
+        Long id = 1L;
+        DormitoryRequestDto request = new DormitoryRequestDto();
+        request.setName("New Name");
+        request.setAddress("New Address");
+
+        Dormitory dormitory = new Dormitory();
+        dormitory.setName("Old Name");
+        dormitory.setAddress("Old Address");
+
+        when(dormitoryRepository.findDormitoryById(id)).thenReturn(Optional.of(dormitory));
+        when(dormitoryRepository.existsByNameAndAddress("New Name", "New Address")).thenReturn(false);
+        when(dormitoryRepository.save(dormitory)).thenReturn(dormitory);
+        when(dormitoryMapper.toDto(dormitory)).thenReturn(new DormitoryResponseDto());
+
+        DormitoryResponseDto result = dormitoryService.updateDormitory(id, request);
+
+        assertNotNull(result);
+        assertEquals("New Name", dormitory.getName());
+        assertEquals("New Address", dormitory.getAddress());
+        verify(dormitoryRepository).save(dormitory);
+    }
+
+    @Test
+    @DisplayName("updateDormitory - имя и адрес не меняются (равны старым)")
+    void updateDormitory_noChange() {
+        Long id = 1L;
+        DormitoryRequestDto request = new DormitoryRequestDto();
+        request.setName("Old Name");
+        request.setAddress("Old Address");
+
+        Dormitory dormitory = new Dormitory();
+        dormitory.setName("Old Name");
+        dormitory.setAddress("Old Address");
+
+        when(dormitoryRepository.findDormitoryById(id)).thenReturn(Optional.of(dormitory));
+        // existsByNameAndAddress НЕ должен вызываться, так как значения не изменились
+        when(dormitoryRepository.save(dormitory)).thenReturn(dormitory);
+        when(dormitoryMapper.toDto(dormitory)).thenReturn(new DormitoryResponseDto());
+
+        DormitoryResponseDto result = dormitoryService.updateDormitory(id, request);
+
+        assertNotNull(result);
+        verify(dormitoryRepository, never()).existsByNameAndAddress(anyString(), anyString());
+        verify(dormitoryRepository).save(dormitory);
+    }
+
+    @Test
+    @DisplayName("updatePatchDormitory - все поля null (пустой PATCH запрос)")
+    void updatePatchDormitory_allFieldsNull() {
+        Long id = 1L;
+        DormitoryRequestDto request = new DormitoryRequestDto();
+        // Все поля null
+
+        Dormitory dormitory = new Dormitory();
+        dormitory.setName("Old Name");
+        dormitory.setAddress("Old Address");
+
+        when(dormitoryRepository.findDormitoryById(id)).thenReturn(Optional.of(dormitory));
+        when(dormitoryRepository.save(dormitory)).thenReturn(dormitory);
+        when(dormitoryMapper.toDto(dormitory)).thenReturn(new DormitoryResponseDto());
+
+        DormitoryResponseDto result = dormitoryService.updatePatchDormitory(id, request);
+
+        assertNotNull(result);
+        // Проверяем, что значения не изменились
+        assertEquals("Old Name", dormitory.getName());
+        assertEquals("Old Address", dormitory.getAddress());
+        // existsByNameAndAddress НЕ должен вызываться
+        verify(dormitoryRepository, never()).existsByNameAndAddress(anyString(), anyString());
+        verify(dormitoryRepository).save(dormitory);
+    }
+
+    @Test
+    @DisplayName("updatePatchDormitory - обновление только имени (успешно)")
+    void updatePatchDormitory_onlyNameUpdate_success() {
+        Long id = 1L;
+        DormitoryRequestDto request = new DormitoryRequestDto();
+        request.setName("New Name Only");
+        // address = null
+
+        Dormitory dormitory = new Dormitory();
+        dormitory.setName("Old Name");
+        dormitory.setAddress("Old Address");
+
+        when(dormitoryRepository.findDormitoryById(id)).thenReturn(Optional.of(dormitory));
+        when(dormitoryRepository.existsByNameAndAddress("New Name Only", "Old Address")).thenReturn(false);
+        when(dormitoryRepository.save(dormitory)).thenReturn(dormitory);
+        when(dormitoryMapper.toDto(dormitory)).thenReturn(new DormitoryResponseDto());
+
+        DormitoryResponseDto result = dormitoryService.updatePatchDormitory(id, request);
+
+        assertNotNull(result);
+        assertEquals("New Name Only", dormitory.getName());
+        assertEquals("Old Address", dormitory.getAddress()); // не изменился
+        verify(dormitoryRepository).save(dormitory);
+    }
+
+    @Test
+    @DisplayName("updatePatchDormitory - обновление только адреса (успешно)")
+    void updatePatchDormitory_onlyAddressUpdate_success() {
+        Long id = 1L;
+        DormitoryRequestDto request = new DormitoryRequestDto();
+        request.setAddress("New Address Only");
+        // name = null
+
+        Dormitory dormitory = new Dormitory();
+        dormitory.setName("Old Name");
+        dormitory.setAddress("Old Address");
+
+        when(dormitoryRepository.findDormitoryById(id)).thenReturn(Optional.of(dormitory));
+        when(dormitoryRepository.existsByNameAndAddress("Old Name", "New Address Only")).thenReturn(false);
+        when(dormitoryRepository.save(dormitory)).thenReturn(dormitory);
+        when(dormitoryMapper.toDto(dormitory)).thenReturn(new DormitoryResponseDto());
+
+        DormitoryResponseDto result = dormitoryService.updatePatchDormitory(id, request);
+
+        assertNotNull(result);
+        assertEquals("Old Name", dormitory.getName()); // не изменилось
+        assertEquals("New Address Only", dormitory.getAddress());
+        verify(dormitoryRepository).save(dormitory);
+    }
+
+    @Test
+    @DisplayName("updatePatchDormitory - имя и адрес не меняются (равны старым)")
+    void updatePatchDormitory_noChange() {
+        Long id = 1L;
+        DormitoryRequestDto request = new DormitoryRequestDto();
+        request.setName("Old Name");
+        request.setAddress("Old Address");
+
+        Dormitory dormitory = new Dormitory();
+        dormitory.setName("Old Name");
+        dormitory.setAddress("Old Address");
+
+        when(dormitoryRepository.findDormitoryById(id)).thenReturn(Optional.of(dormitory));
+        when(dormitoryRepository.save(dormitory)).thenReturn(dormitory);
+        when(dormitoryMapper.toDto(dormitory)).thenReturn(new DormitoryResponseDto());
+
+        DormitoryResponseDto result = dormitoryService.updatePatchDormitory(id, request);
+
+        assertNotNull(result);
+        // Проверка уникальности НЕ должна выполняться, так как значения не изменились
+        verify(dormitoryRepository, never()).existsByNameAndAddress(anyString(), anyString());
+        verify(dormitoryRepository).save(dormitory);
+    }
 }
