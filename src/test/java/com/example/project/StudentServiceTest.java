@@ -864,4 +864,92 @@ class StudentServiceTest {
         verify(studentRepository).findStudentsByComplexCriteriaNative(eq(null), eq("SMOKING"), any());
     }
 
+    @Test
+    @DisplayName("filterJpql - только CHS заполнен (проверка ветки false && true)")
+    void filterJpql_onlyChs() {
+        Integer chs = 1;
+        ViolationType type = null;
+
+        // Заставляем мок кэша выполнить логику внутри лямбды
+        when(cacheManager.computeIfAbsent(any(), any())).thenAnswer(inv ->
+                ((java.util.function.Supplier<?>) inv.getArgument(1)).get());
+
+        Page<Student> page = new PageImpl<>(List.of(new Student()));
+        when(studentRepository.findStudentsByComplexCriteriaJpql(eq(chs), eq(type), any())).thenReturn(page);
+
+        assertDoesNotThrow(() -> studentService.filterStudentsWithJpqlPaged(chs, type, 0, 10));
+        verify(studentRepository).findStudentsByComplexCriteriaJpql(eq(chs), eq(type), any());
+    }
+
+    @Test
+    @DisplayName("filterJpql - только ViolationType заполнен (проверка ветки true && false)")
+    void filterJpql_onlyViolationType() {
+        Integer chs = null;
+        ViolationType type = ViolationType.NOISE; // Предположим, такой enum есть
+
+        when(cacheManager.computeIfAbsent(any(), any())).thenAnswer(inv ->
+                ((java.util.function.Supplier<?>) inv.getArgument(1)).get());
+
+        Page<Student> page = new PageImpl<>(List.of(new Student()));
+        when(studentRepository.findStudentsByComplexCriteriaJpql(eq(chs), eq(type), any())).thenReturn(page);
+
+        assertDoesNotThrow(() -> studentService.filterStudentsWithJpqlPaged(chs, type, 0, 10));
+    }
+
+    @Test
+    @DisplayName("filterJpql - оба фильтра заполнены (проверка ветки false && false)")
+    void filterJpql_bothFilters() {
+        Integer chs = 1;
+        ViolationType type = ViolationType.SMOKING;
+
+        when(cacheManager.computeIfAbsent(any(), any())).thenAnswer(inv ->
+                ((java.util.function.Supplier<?>) inv.getArgument(1)).get());
+
+        Page<Student> page = new PageImpl<>(List.of(new Student()));
+        when(studentRepository.findStudentsByComplexCriteriaJpql(eq(chs), eq(type), any())).thenReturn(page);
+
+        assertDoesNotThrow(() -> studentService.filterStudentsWithJpqlPaged(chs, type, 0, 10));
+    }
+
+    @Test
+    @DisplayName("filterNative - только CHS заполнен")
+    void filterNative_onlyChs() {
+        Integer chs = 0;
+        String type = null;
+
+        when(cacheManager.computeIfAbsent(any(), any())).thenAnswer(inv ->
+                ((java.util.function.Supplier<?>) inv.getArgument(1)).get());
+
+        studentService.filterStudentsWithNativePaged(chs, type, 0, 10);
+
+        verify(studentRepository).findStudentsByComplexCriteriaNative(eq(chs), eq(type), any());
+    }
+
+    @Test
+    @DisplayName("filterNative - только тип нарушения заполнен (String)")
+    void filterNative_onlyType() {
+        Integer chs = null;
+        String type = "OTHER";
+
+        when(cacheManager.computeIfAbsent(any(), any())).thenAnswer(inv ->
+                ((java.util.function.Supplier<?>) inv.getArgument(1)).get());
+
+        studentService.filterStudentsWithNativePaged(chs, type, 0, 10);
+
+        verify(studentRepository).findStudentsByComplexCriteriaNative(eq(null), eq("OTHER"), any());
+    }
+
+    @Test
+    @DisplayName("filterMethods - ошибка если оба фильтра null")
+    void filterMethods_exceptionTest() {
+        // Для JPQL
+        assertThrows(BadRequestException.class, () ->
+                studentService.filterStudentsWithJpqlPaged(null, null, 0, 10));
+
+        // Для Native
+        assertThrows(BadRequestException.class, () ->
+                studentService.filterStudentsWithNativePaged(null, null, 0, 10));
+    }
+
+
 }
