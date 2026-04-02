@@ -35,6 +35,11 @@
             **/aop/**,
             **/*Application.java
         </sonar.coverage.exclusions>
+        <sonar.exclusions>
+            **/dto/**,
+            **/model/**,
+            **/mapper/**
+        </sonar.exclusions>
     </properties>
 
     <dependencies>
