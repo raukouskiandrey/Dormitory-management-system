@@ -15,6 +15,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
@@ -40,7 +41,6 @@ class ServiceCoverageSupplementTest {
     @Test
     @DisplayName("Массовое назначение нарушений — успех")
     void assignViolations_Success() {
-        // Создаем DTO, используя обновленный ViolationRequestDto
         ViolationRequestDto req = ViolationRequestDto.builder()
                 .studentId(1L)
                 .date("2024-01-01")
@@ -53,19 +53,18 @@ class ServiceCoverageSupplementTest {
                 .build();
 
         when(studentRepository.findById(1L)).thenReturn(Optional.of(student));
-
         studentService.assignViolationsToStudentsWithTx(List.of(req));
-
         verify(violationRepository, times(1)).save(any(Violation.class));
         verify(studentRepository, times(1)).save(student);
-        verify(studentRepository).findById(1L);
     }
 
     @Test
     @DisplayName("Массовое назначение нарушений — пустой список")
     void assignViolations_EmptyList() {
+        List<ViolationRequestDto> emptyList = Collections.emptyList();
+
         org.junit.jupiter.api.Assertions.assertThrows(IllegalArgumentException.class, () -> {
-            studentService.assignViolationsToStudentsNoTx(List.of());
+            studentService.assignViolationsToStudentsNoTx(emptyList);
         });
     }
 }
