@@ -26,7 +26,11 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
-import java.util.*;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 @Service
 public class StudentService {
@@ -48,7 +52,8 @@ public class StudentService {
                           StudentRepository studentRepository,
                           RoomService roomService,
                           ContractRepository contractRepository,
-                          CacheManager cacheManager, ViolationService violationService, ViolationRepository violationRepository) {
+                          CacheManager cacheManager, ViolationService violationService,
+                          ViolationRepository violationRepository) {
         this.studentMapper = studentMapper;
         this.studentRepository = studentRepository;
         this.roomService = roomService;

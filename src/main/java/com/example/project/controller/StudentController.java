@@ -76,7 +76,8 @@ public class StudentController {
             description = "Устанавливает связь между студентами и комнатой")
     public ResponseEntity<List<StudentResponseDto>> assignStudentsToRoom(
             @Parameter(description = "ID целевой комнаты") @PathVariable Long roomId,
-            @Parameter(description = "Список студентов на заселение") @RequestBody List<StudentUpdateRequest> studentsId) {
+            @Parameter(description = "Список студентов на заселение")
+            @RequestBody List<StudentUpdateRequest> studentsId) {
         List<StudentResponseDto> updatedStudents = studentService.assignStudentsToRoom(studentsId, roomId);
         return ok(updatedStudents);
     }
@@ -210,6 +211,7 @@ public class StudentController {
     @PostMapping("/bulk/violations/withTx")
     public ResponseEntity<List<StudentResponseDto>> createViolationsBulkWithTx(
             @RequestBody List<ViolationBulkRequest> requests) {
-        return ResponseEntity.status(HttpStatus.CREATED).body(studentService.assignViolationsToStudentsWithTx(requests));
+        return ResponseEntity.status(HttpStatus.CREATED).body(
+                studentService.assignViolationsToStudentsWithTx(requests));
     }
 }
