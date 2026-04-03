@@ -4,11 +4,21 @@ import com.example.project.model.ViolationType;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 @Schema(description = "Данные о зафиксированном нарушении")
 public class ViolationRequestDto {
+
+    @Schema(description = "ID студента ", example = "1")
+    private Long studentId;
+
     @Schema(description = "Тип нарушения согласно классификатору")
     @NotNull(message = "Тип нарушения обязателен")
     private ViolationType violationType;

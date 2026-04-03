@@ -3,7 +3,7 @@ package com.example.project.controller;
 import com.example.project.dto.request.StudentCreationDto;
 import com.example.project.dto.request.StudentRequestDto;
 import com.example.project.dto.request.StudentUpdateRequest;
-import com.example.project.dto.request.ViolationBulkRequest;
+import com.example.project.dto.request.ViolationRequestDto;
 import com.example.project.dto.response.StudentResponseDto;
 import com.example.project.model.ViolationType;
 import com.example.project.service.StudentService;
@@ -204,13 +204,13 @@ public class StudentController {
 
     @PostMapping("/bulk/violations/noTx")
     public ResponseEntity<List<StudentResponseDto>> createViolationsBulkNoTx(
-            @RequestBody List<ViolationBulkRequest> requests) {
+            @RequestBody List<ViolationRequestDto> requests) {
         return ResponseEntity.status(HttpStatus.CREATED).body(studentService.assignViolationsToStudentsNoTx(requests));
     }
 
     @PostMapping("/bulk/violations/withTx")
     public ResponseEntity<List<StudentResponseDto>> createViolationsBulkWithTx(
-            @RequestBody List<ViolationBulkRequest> requests) {
+            @RequestBody List<ViolationRequestDto> requests) {
         return ResponseEntity.status(HttpStatus.CREATED).body(
                 studentService.assignViolationsToStudentsWithTx(requests));
     }

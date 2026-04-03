@@ -493,11 +493,11 @@ class StudentServiceTest {
     @Test
     @DisplayName("assignViolationsToStudentsNoTx — успех")
     void assignViolationsToStudentsNoTx_success() {
-        List<ViolationBulkRequest> requests = new ArrayList<>();
-        ViolationBulkRequest req = new ViolationBulkRequest();
+        List<ViolationRequestDto> requests = new ArrayList<>();
+        ViolationRequestDto req = new ViolationRequestDto();
         req.setStudentId(1L);
         req.setDate("2024-01-01");
-        req.setType(ViolationType.SMOKING);
+        req.setViolationType(ViolationType.SMOKING); // Заменено с setType
         requests.add(req);
 
         Student student = new Student();
@@ -522,7 +522,7 @@ class StudentServiceTest {
         assertThrows(IllegalArgumentException.class,
                 () -> studentService.assignViolationsToStudentsNoTx(null));
 
-        List<ViolationBulkRequest> emptyList = new ArrayList<>();
+        List<ViolationRequestDto> emptyList = new ArrayList<>();
         assertThrows(IllegalArgumentException.class,
                 () -> studentService.assignViolationsToStudentsNoTx(emptyList));
     }
@@ -530,11 +530,11 @@ class StudentServiceTest {
     @Test
     @DisplayName("assignViolationsToStudentsNoTx — студент не найден")
     void assignViolationsToStudentsNoTx_studentNotFound() {
-        List<ViolationBulkRequest> requests = new ArrayList<>();
-        ViolationBulkRequest req = new ViolationBulkRequest();
+        List<ViolationRequestDto> requests = new ArrayList<>();
+        ViolationRequestDto req = new ViolationRequestDto();
         req.setStudentId(999L);
         req.setDate("2024-01-01");
-        req.setType(ViolationType.SMOKING);
+        req.setViolationType(ViolationType.SMOKING); // Заменено с setType
         requests.add(req);
 
         when(studentRepository.findById(999L)).thenReturn(Optional.empty());
@@ -545,11 +545,11 @@ class StudentServiceTest {
     @Test
     @DisplayName("assignViolationsToStudentsWithTx — успех")
     void assignViolationsToStudentsWithTx_success() {
-        List<ViolationBulkRequest> requests = new ArrayList<>();
-        ViolationBulkRequest req = new ViolationBulkRequest();
+        List<ViolationRequestDto> requests = new ArrayList<>();
+        ViolationRequestDto req = new ViolationRequestDto();
         req.setStudentId(1L);
         req.setDate("2024-01-01");
-        req.setType(ViolationType.SMOKING);
+        req.setViolationType(ViolationType.SMOKING); // Заменено с setType
         requests.add(req);
 
         Student student = new Student();

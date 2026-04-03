@@ -5,7 +5,7 @@ import com.example.project.cache.CacheManager;
 import com.example.project.dto.request.StudentCreationDto;
 import com.example.project.dto.request.StudentRequestDto;
 import com.example.project.dto.request.StudentUpdateRequest;
-import com.example.project.dto.request.ViolationBulkRequest;
+import com.example.project.dto.request.ViolationRequestDto;
 import com.example.project.dto.response.StudentResponseDto;
 import com.example.project.exception.BadRequestException;
 import com.example.project.exception.ResourceNotFoundException;
@@ -356,20 +356,20 @@ public class StudentService {
         return studentMapper.toDtoList(students);
     }
 
-    public List<StudentResponseDto> assignViolationsToStudentsNoTx(List<ViolationBulkRequest> requests) {
+    public List<StudentResponseDto> assignViolationsToStudentsNoTx(List<ViolationRequestDto> requests) {
         if (requests == null || requests.isEmpty()) {
             throw new IllegalArgumentException("Список нарушений не может быть пустым");
         }
 
         Map<Long, Student> studentsCache = new HashMap<>();
 
-        for (ViolationBulkRequest dto : requests) {
+        for (ViolationRequestDto dto : requests) {
             Student student = studentRepository.findById(dto.getStudentId())
                     .orElseThrow(() -> new ResourceNotFoundException("Студент не найден с ID: " + dto.getStudentId()));
 
             Violation violation = Violation.builder()
                     .date(dto.getDate())
-                    .violationType(dto.getType())
+                    .violationType(dto.getViolationType())
                     .students(new HashSet<>(Set.of(student)))
                     .build();
 
@@ -385,7 +385,7 @@ public class StudentService {
     }
 
     @Transactional
-    public List<StudentResponseDto> assignViolationsToStudentsWithTx(List<ViolationBulkRequest> requests) {
+    public List<StudentResponseDto> assignViolationsToStudentsWithTx(List<ViolationRequestDto> requests) {
         return assignViolationsToStudentsNoTx(requests);
     }
 }
