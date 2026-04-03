@@ -86,7 +86,7 @@ class ViolationServiceTest {
         student.setViolations(new HashSet<>());
 
         Violation violation = new Violation();
-        violation.setStudents(new HashSet<>()); // Инициализируем Set!
+        violation.setStudents(new HashSet<>());
         ViolationResponseDto expectedDto = new ViolationResponseDto();
 
         when(studentRepository.findById(studentId)).thenReturn(Optional.of(student));

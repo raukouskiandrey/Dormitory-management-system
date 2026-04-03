@@ -519,11 +519,9 @@ class StudentServiceTest {
     @Test
     @DisplayName("assignViolationsToStudentsNoTx — пустой список или null")
     void assignViolationsToStudentsNoTx_empty() {
-        // Тест 1: Проверка null
         assertThrows(IllegalArgumentException.class,
                 () -> studentService.assignViolationsToStudentsNoTx(null));
 
-        // Тест 2: Проверка пустого списка
         List<ViolationBulkRequest> emptyList = new ArrayList<>();
         assertThrows(IllegalArgumentException.class,
                 () -> studentService.assignViolationsToStudentsNoTx(emptyList));
@@ -683,7 +681,7 @@ class StudentServiceTest {
     void updatePatchStudent_invalidAge() {
         Long id = 1L;
         StudentRequestDto request = new StudentRequestDto();
-        request.setAge(10); // Слишком молод
+        request.setAge(10);
 
         when(studentRepository.findStudentById(id)).thenReturn(Optional.of(new Student()));
 
@@ -719,7 +717,7 @@ class StudentServiceTest {
         StudentCreationDto dto = new StudentCreationDto();
         dto.setContractStartDate("2023-01-01");
         dto.setContractEndDate("2023-12-31");
-        dto.setInitiateProblem(true); // Активируем ошибку
+        dto.setInitiateProblem(true);
 
         when(contractRepository.existsByNumber(any())).thenReturn(false);
         when(roomService.findRoomEntityById(any())).thenReturn(new Room());
@@ -746,8 +744,8 @@ class StudentServiceTest {
         room.setTotalPlaces(10);
         room.setStudents(new HashSet<>());
 
-        Student s1 = new Student(); s1.setId(1L); // Новый
-        Student s2 = new Student(); s2.setId(2L); s2.setRoom(room); // Уже тут
+        Student s1 = new Student(); s1.setId(1L);
+        Student s2 = new Student(); s2.setId(2L); s2.setRoom(room);
 
         StudentUpdateRequest req1 = new StudentUpdateRequest(); req1.setId(1L);
         StudentUpdateRequest req2 = new StudentUpdateRequest(); req2.setId(2L);
@@ -767,8 +765,8 @@ class StudentServiceTest {
     void updatePatchStudent_nullFieldsCoverage() {
         Long id = 1L;
         StudentRequestDto request = new StudentRequestDto();
-        request.setAge(null);  // Чтобы пропустить первый if полностью
-        request.setName(null); // Чтобы пропустить блок установки имени
+        request.setAge(null);
+        request.setName(null);
 
         Student student = new Student();
         student.setName("OldName");
@@ -778,7 +776,7 @@ class StudentServiceTest {
 
         studentService.updatePatchStudent(id, request);
 
-        assertEquals("OldName", student.getName()); // Имя не должно измениться
+        assertEquals("OldName", student.getName());
         verify(studentRepository).save(student);
     }
 
@@ -787,7 +785,7 @@ class StudentServiceTest {
     void updatePatchStudent_tooOld() {
         Long id = 1L;
         StudentRequestDto request = new StudentRequestDto();
-        request.setAge(101); // Граница MAX_AGE
+        request.setAge(101);
 
         when(studentRepository.findStudentById(id)).thenReturn(Optional.of(new Student()));
 
@@ -798,9 +796,8 @@ class StudentServiceTest {
     @DisplayName("filterStudentsWithJpqlPaged - успех только с CHS (violationType = null)")
     void filterStudents_onlyChs() {
         Integer chs = 1;
-        ViolationType type = null; // Проверка ветки null в buildCacheKey
+        ViolationType type = null;
 
-        // Важно: вызываем реальный метод computeIfAbsent или заставляем мок выполнить лямбду
         when(cacheManager.computeIfAbsent(any(), any())).thenAnswer(invocation -> {
             return ((java.util.function.Supplier<?>) invocation.getArgument(1)).get();
         });
@@ -822,12 +819,10 @@ class StudentServiceTest {
         targetRoom.setTotalPlaces(10);
         targetRoom.setStudents(new HashSet<>());
 
-        // 1. Студент уже в этой комнате
         Student s1 = new Student();
         s1.setId(1L);
         s1.setRoom(targetRoom);
 
-        // 2. Студент в другой комнате
         Room otherRoom = new Room();
         otherRoom.setId(99L);
         otherRoom.setStudents(new HashSet<>());
@@ -836,7 +831,6 @@ class StudentServiceTest {
         s2.setRoom(otherRoom);
         otherRoom.getStudents().add(s2);
 
-        // Подготовка DTO
         StudentUpdateRequest req1 = new StudentUpdateRequest(); req1.setId(1L);
         StudentUpdateRequest req2 = new StudentUpdateRequest(); req2.setId(2L);
 
@@ -846,7 +840,6 @@ class StudentServiceTest {
 
         studentService.assignStudentsToRoom(List.of(req1, req2), roomId);
 
-        // Проверки
         assertFalse(otherRoom.getStudents().contains(s2), "Студент должен быть удален из старой комнаты");
         assertTrue(targetRoom.getStudents().contains(s2), "Студент должен быть добавлен в новую комнату");
         verify(studentRepository).saveAll(any());
@@ -864,7 +857,6 @@ class StudentServiceTest {
     void filterNative_onlyViolation() {
         when(cacheManager.computeIfAbsent(any(), any())).thenAnswer(inv -> ((java.util.function.Supplier<?>) inv.getArgument(1)).get());
 
-        // CHS = null, Violation != null
         studentService.filterStudentsWithNativePaged(null, "SMOKING", 0, 10);
 
         verify(studentRepository).findStudentsByComplexCriteriaNative(eq(null), eq("SMOKING"), any());
@@ -876,7 +868,6 @@ class StudentServiceTest {
         Integer chs = 1;
         ViolationType type = null;
 
-        // Заставляем мок кэша выполнить логику внутри лямбды
         when(cacheManager.computeIfAbsent(any(), any())).thenAnswer(inv ->
                 ((java.util.function.Supplier<?>) inv.getArgument(1)).get());
 
@@ -891,7 +882,7 @@ class StudentServiceTest {
     @DisplayName("filterJpql - только ViolationType заполнен (проверка ветки true && false)")
     void filterJpql_onlyViolationType() {
         Integer chs = null;
-        ViolationType type = ViolationType.NOISE; // Предположим, такой enum есть
+        ViolationType type = ViolationType.NOISE;
 
         when(cacheManager.computeIfAbsent(any(), any())).thenAnswer(inv ->
                 ((java.util.function.Supplier<?>) inv.getArgument(1)).get());

@@ -139,7 +139,7 @@ class RoomServiceTest {
         Long dormitoryId = 1L;
         RoomRequestDto request = new RoomRequestDto();
         request.setNumber(101);
-        request.setTotalPlaces(10); // Невалидное значение, но сервис не валидирует при create
+        request.setTotalPlaces(10);
 
         Dormitory dormitory = new Dormitory();
         dormitory.setRooms(new HashSet<>());
@@ -152,7 +152,6 @@ class RoomServiceTest {
         when(roomRepository.save(room)).thenReturn(room);
         when(roomMapper.toDto(room)).thenReturn(new RoomResponseDto());
 
-        // Исключение НЕ должно выбрасываться, так как в createRoom нет валидации
         assertDoesNotThrow(() -> roomService.createRoom(dormitoryId, request));
     }
 
@@ -194,7 +193,7 @@ class RoomServiceTest {
         Student student = new Student();
         Set<Student> students = new HashSet<>();
         students.add(student);
-        students.add(new Student()); // 2 студента
+        students.add(new Student());
 
         Dormitory dormitory = new Dormitory();
         Room room = new Room();
@@ -351,14 +350,13 @@ class RoomServiceTest {
         assertThrows(ResourceNotFoundException.class, () -> roomService.deleteRoomById(id));
     }
 
-    // ========== ДОПОЛНИТЕЛЬНЫЕ ТЕСТЫ ДЛЯ ПОЛНОГО ПОКРЫТИЯ ==========
 
     @Test
     @DisplayName("updateRoom - номер не меняется (равен старому) - проверка дубликата НЕ выполняется")
     void updateRoom_numberNotChanged() {
         Long id = 1L;
         RoomRequestDto request = new RoomRequestDto();
-        request.setNumber(101); // тот же номер
+        request.setNumber(101);
         request.setTotalPlaces(4);
 
         Dormitory dormitory = new Dormitory();
@@ -376,7 +374,6 @@ class RoomServiceTest {
 
         roomService.updateRoom(id, request);
 
-        // existsByNumberAndDormitoryId НЕ должен вызываться, так как номер не меняется
         verify(roomRepository, never()).existsByNumberAndDormitoryId(anyInt(), anyLong());
         verify(roomRepository).save(room);
     }
@@ -386,7 +383,7 @@ class RoomServiceTest {
     void updatePatchRoom_numberNull() {
         Long id = 1L;
         RoomRequestDto request = new RoomRequestDto();
-        request.setNumber(null); // номер не меняется
+        request.setNumber(null);
         request.setTotalPlaces(5);
 
         Dormitory dormitory = new Dormitory();
@@ -405,7 +402,7 @@ class RoomServiceTest {
         roomService.updatePatchRoom(id, request);
 
         assertEquals(5, room.getTotalPlaces());
-        assertEquals(101, room.getNumber()); // не изменился
+        assertEquals(101, room.getNumber());
         verify(roomRepository, never()).existsByNumberAndDormitoryId(anyInt(), anyLong());
         verify(roomRepository).save(room);
     }
@@ -416,7 +413,7 @@ class RoomServiceTest {
         Long id = 1L;
         RoomRequestDto request = new RoomRequestDto();
         request.setNumber(200);
-        request.setTotalPlaces(null); // не обновляется
+        request.setTotalPlaces(null);
 
         Dormitory dormitory = new Dormitory();
         dormitory.setId(1L);
@@ -435,7 +432,7 @@ class RoomServiceTest {
         roomService.updatePatchRoom(id, request);
 
         assertEquals(200, room.getNumber());
-        assertEquals(3, room.getTotalPlaces()); // не изменилось
+        assertEquals(3, room.getTotalPlaces());
         verify(roomRepository).save(room);
     }
 
@@ -468,7 +465,7 @@ class RoomServiceTest {
         Long id = 1L;
         RoomRequestDto request = new RoomRequestDto();
         request.setNumber(null);
-        request.setTotalPlaces(3); // валидное значение
+        request.setTotalPlaces(3);
 
         Dormitory dormitory = new Dormitory();
         dormitory.setId(1L);
@@ -483,7 +480,6 @@ class RoomServiceTest {
         when(roomRepository.save(room)).thenReturn(room);
         when(roomMapper.toDto(room)).thenReturn(new RoomResponseDto());
 
-        // Не должно быть исключения
         assertDoesNotThrow(() -> roomService.updatePatchRoom(id, request));
     }
 
@@ -518,7 +514,7 @@ class RoomServiceTest {
         Long id = 1L;
         RoomRequestDto request = new RoomRequestDto();
         request.setNumber(200);
-        request.setTotalPlaces(1); // минимальное допустимое
+        request.setTotalPlaces(1);
 
         Dormitory dormitory = new Dormitory();
         dormitory.setId(1L);
@@ -544,7 +540,7 @@ class RoomServiceTest {
         Long id = 1L;
         RoomRequestDto request = new RoomRequestDto();
         request.setNumber(200);
-        request.setTotalPlaces(6); // максимальное допустимое
+        request.setTotalPlaces(6);
 
         Dormitory dormitory = new Dormitory();
         dormitory.setId(1L);
@@ -569,7 +565,7 @@ class RoomServiceTest {
     void validateRoomData_totalPlacesLessThanMin() {
         Long id = 1L;
         RoomRequestDto request = new RoomRequestDto();
-        request.setTotalPlaces(0); // меньше 1
+        request.setTotalPlaces(0);
 
         Dormitory dormitory = new Dormitory();
         Room room = new Room();
@@ -618,7 +614,7 @@ class RoomServiceTest {
     void updatePatchRoom_sameNumber() {
         Long id = 1L;
         RoomRequestDto request = new RoomRequestDto();
-        request.setNumber(101); // Тот же номер, что и в базе
+        request.setNumber(101);
 
         Room room = new Room();
         room.setNumber(101);
@@ -632,7 +628,6 @@ class RoomServiceTest {
 
         roomService.updatePatchRoom(id, request);
 
-        // Проверяем, что поиск дубликата в БД НЕ вызывался
         verify(roomRepository, never()).existsByNumberAndDormitoryId(anyInt(), anyLong());
         verify(roomRepository).save(room);
     }
@@ -642,15 +637,14 @@ class RoomServiceTest {
     void updatePatchRoom_limitBelowCurrentStudents() {
         Long id = 1L;
         RoomRequestDto request = new RoomRequestDto();
-        request.setTotalPlaces(1); // Пытаемся поставить 1 место
+        request.setTotalPlaces(1);
 
         Room room = new Room();
         room.setNumber(101);
-        room.setStudents(Set.of(new Student(), new Student())); // В комнате уже 2 студента
+        room.setStudents(Set.of(new Student(), new Student()));
 
         when(roomRepository.findRoomById(id)).thenReturn(Optional.of(room));
 
-        // Проверяем текст ошибки, чтобы убедиться, что зашли именно в эту ветку
         BadRequestException ex = assertThrows(BadRequestException.class,
                 () -> roomService.updatePatchRoom(id, request));
 

@@ -145,8 +145,8 @@ class ContractServiceTest {
         contractService.updatePatchContract(id, request);
 
         assertEquals(99999, contract.getNumber());
-        assertEquals("2024-01-01", contract.getStartDate()); // не изменилась
-        assertEquals("2024-12-31", contract.getEndDate());   // не изменилась
+        assertEquals("2024-01-01", contract.getStartDate());
+        assertEquals("2024-12-31", contract.getEndDate());
         verify(contractRepository).save(contract);
     }
 
@@ -238,7 +238,6 @@ class ContractServiceTest {
     void updatePatchContract_allFieldsNull() {
         Long id = 1L;
         ContractRequestDto request = new ContractRequestDto();
-        // Все поля остаются null
 
         Contract contract = new Contract();
         contract.setNumber(11111);
@@ -249,10 +248,8 @@ class ContractServiceTest {
         when(contractRepository.save(any(Contract.class))).thenReturn(contract);
         when(contractMapper.toDto(contract)).thenReturn(new ContractResponseDto());
 
-        // Должно выполниться успешно без изменений
         assertDoesNotThrow(() -> contractService.updatePatchContract(id, request));
 
-        // Проверяем, что значения не изменились
         assertEquals(11111, contract.getNumber());
         assertEquals("2024-01-01", contract.getStartDate());
         assertEquals("2024-12-31", contract.getEndDate());
@@ -265,7 +262,7 @@ class ContractServiceTest {
     void updatePatchContract_onlyNumberUpdate() {
         Long id = 1L;
         ContractRequestDto request = new ContractRequestDto();
-        request.setNumber(77777); // Измените значение здесь
+        request.setNumber(77777);
 
         Contract contract = new Contract();
         contract.setNumber(11111);
@@ -279,7 +276,7 @@ class ContractServiceTest {
         contractService.updatePatchContract(id, request);
 
         assertEquals(77777, contract.getNumber());
-        assertEquals("2024-01-01", contract.getStartDate()); // Проверка, что старая дата осталась
+        assertEquals("2024-01-01", contract.getStartDate());
         verify(contractRepository).save(contract);
     }
 
@@ -289,7 +286,6 @@ class ContractServiceTest {
         Long id = 1L;
         ContractRequestDto request = new ContractRequestDto();
         request.setStartDate("2024-06-01");
-        // number и endDate остаются null
 
         Contract contract = new Contract();
         contract.setNumber(11111);
@@ -303,8 +299,8 @@ class ContractServiceTest {
         contractService.updatePatchContract(id, request);
 
         assertEquals("2024-06-01", contract.getStartDate());
-        assertEquals(11111, contract.getNumber());     // не изменился
-        assertEquals("2024-12-31", contract.getEndDate()); // не изменилась
+        assertEquals(11111, contract.getNumber());
+        assertEquals("2024-12-31", contract.getEndDate());
         verify(contractRepository).save(contract);
     }
 
@@ -314,7 +310,6 @@ class ContractServiceTest {
         Long id = 1L;
         ContractRequestDto request = new ContractRequestDto();
         request.setEndDate("2024-11-30");
-        // number и startDate остаются null
 
         Contract contract = new Contract();
         contract.setNumber(11111);
@@ -328,8 +323,8 @@ class ContractServiceTest {
         contractService.updatePatchContract(id, request);
 
         assertEquals("2024-11-30", contract.getEndDate());
-        assertEquals(11111, contract.getNumber());         // не изменился
-        assertEquals("2024-01-01", contract.getStartDate()); // не изменилась
+        assertEquals(11111, contract.getNumber());
+        assertEquals("2024-01-01", contract.getStartDate());
         verify(contractRepository).save(contract);
     }
 
@@ -339,7 +334,7 @@ class ContractServiceTest {
         Long id = 1L;
         ContractRequestDto request = new ContractRequestDto();
         request.setStartDate("2024-12-31");
-        request.setEndDate("2024-01-01"); // endDate раньше startDate
+        request.setEndDate("2024-01-01");
 
         Contract contract = new Contract();
         contract.setNumber(11111);
@@ -348,10 +343,8 @@ class ContractServiceTest {
 
         when(contractRepository.findContractById(id)).thenReturn(Optional.of(contract));
 
-        // Должна выброситься ошибка валидации
         assertThrows(BadRequestException.class, () -> contractService.updatePatchContract(id, request));
 
-        // save не должен вызываться
         verify(contractRepository, never()).save(any());
     }
 }
