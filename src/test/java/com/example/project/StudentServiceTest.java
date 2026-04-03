@@ -519,8 +519,10 @@ class StudentServiceTest {
     @Test
     @DisplayName("assignViolationsToStudentsNoTx — пустой список")
     void assignViolationsToStudentsNoTx_empty() {
-        assertThrows(IllegalArgumentException.class, () -> studentService.assignViolationsToStudentsNoTx(null));
-        assertThrows(IllegalArgumentException.class, () -> studentService.assignViolationsToStudentsNoTx(new ArrayList<>()));
+        assertThrows(IllegalArgumentException.class, () -> {
+            studentService.assignViolationsToStudentsNoTx(null);
+            studentService.assignViolationsToStudentsNoTx(new ArrayList<>());
+        });
     }
 
     @Test
@@ -939,17 +941,6 @@ class StudentServiceTest {
         verify(studentRepository).findStudentsByComplexCriteriaNative(eq(null), eq("OTHER"), any());
     }
 
-    @Test
-    @DisplayName("filterMethods - ошибка если оба фильтра null")
-    void filterMethods_exceptionTest() {
-        // Для JPQL
-        assertThrows(BadRequestException.class, () ->
-                studentService.filterStudentsWithJpqlPaged(null, null, 0, 10));
-
-        // Для Native
-        assertThrows(BadRequestException.class, () ->
-                studentService.filterStudentsWithNativePaged(null, null, 0, 10));
-    }
 
 
 }

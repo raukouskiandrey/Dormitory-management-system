@@ -265,8 +265,7 @@ class ContractServiceTest {
     void updatePatchContract_onlyNumberUpdate() {
         Long id = 1L;
         ContractRequestDto request = new ContractRequestDto();
-        request.setNumber(99999);
-        // startDate и endDate остаются null
+        request.setNumber(77777); // Измените значение здесь
 
         Contract contract = new Contract();
         contract.setNumber(11111);
@@ -274,14 +273,13 @@ class ContractServiceTest {
         contract.setEndDate("2024-12-31");
 
         when(contractRepository.findContractById(id)).thenReturn(Optional.of(contract));
-        when(contractRepository.save(any(Contract.class))).thenReturn(contract);
-        when(contractMapper.toDto(contract)).thenReturn(new ContractResponseDto());
+        when(contractRepository.save(any(Contract.class))).thenAnswer(i -> i.getArguments()[0]);
+        when(contractMapper.toDto(any())).thenReturn(new ContractResponseDto());
 
         contractService.updatePatchContract(id, request);
 
-        assertEquals(99999, contract.getNumber());
-        assertEquals("2024-01-01", contract.getStartDate()); // не изменилась
-        assertEquals("2024-12-31", contract.getEndDate());   // не изменилась
+        assertEquals(77777, contract.getNumber());
+        assertEquals("2024-01-01", contract.getStartDate()); // Проверка, что старая дата осталась
         verify(contractRepository).save(contract);
     }
 

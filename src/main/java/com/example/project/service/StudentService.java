@@ -330,8 +330,9 @@ public class StudentService {
             throw new BadRequestException("В комнате недостаточно мест для всей группы. "
                     + "Свободно: " + (room.getTotalPlaces() - room.getStudents().size()));
         }
-        List<Student> students = studentsId.stream().map(StudentUpdateRequest -> studentRepository.findStudentById(StudentUpdateRequest.getId())
-                .orElseThrow(() -> new ResourceNotFoundException(STUDENT_NOT_FOUND + StudentUpdateRequest.getId())))
+        List<Student> students = studentsId.stream()
+                .map(request -> studentRepository.findStudentById(request.getId())
+                        .orElseThrow(() -> new ResourceNotFoundException(STUDENT_NOT_FOUND + request.getId())))
                 .toList();
         for (Student student : students) {
             if (student.getRoom() != null && student.getRoom().getId().equals(roomId)) {
