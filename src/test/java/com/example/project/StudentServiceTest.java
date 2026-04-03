@@ -517,15 +517,16 @@ class StudentServiceTest {
     }
 
     @Test
-    @DisplayName("assignViolationsToStudentsNoTx — пустой список")
+    @DisplayName("assignViolationsToStudentsNoTx — пустой список или null")
     void assignViolationsToStudentsNoTx_empty() {
-        // Проверяем случай с null
-        assertThrows(IllegalArgumentException.class, () ->
-                studentService.assignViolationsToStudentsNoTx(null));
+        // Тест 1: Проверка null
+        assertThrows(IllegalArgumentException.class,
+                () -> studentService.assignViolationsToStudentsNoTx(null));
 
-        // Проверяем случай с пустым списком
-        assertThrows(IllegalArgumentException.class, () ->
-                studentService.assignViolationsToStudentsNoTx(new ArrayList<>()));
+        // Тест 2: Проверка пустого списка
+        List<ViolationBulkRequest> emptyList = new ArrayList<>();
+        assertThrows(IllegalArgumentException.class,
+                () -> studentService.assignViolationsToStudentsNoTx(emptyList));
     }
 
     @Test
