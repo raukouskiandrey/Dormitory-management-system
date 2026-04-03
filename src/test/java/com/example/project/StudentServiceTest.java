@@ -519,10 +519,13 @@ class StudentServiceTest {
     @Test
     @DisplayName("assignViolationsToStudentsNoTx — пустой список")
     void assignViolationsToStudentsNoTx_empty() {
-        assertThrows(IllegalArgumentException.class, () -> {
-            studentService.assignViolationsToStudentsNoTx(null);
-            studentService.assignViolationsToStudentsNoTx(new ArrayList<>());
-        });
+        // Проверяем случай с null
+        assertThrows(IllegalArgumentException.class, () ->
+                studentService.assignViolationsToStudentsNoTx(null));
+
+        // Проверяем случай с пустым списком
+        assertThrows(IllegalArgumentException.class, () ->
+                studentService.assignViolationsToStudentsNoTx(new ArrayList<>()));
     }
 
     @Test
