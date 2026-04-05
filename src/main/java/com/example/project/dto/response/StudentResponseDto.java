@@ -6,6 +6,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.util.List;
+
 @Getter
 @Setter
 @NoArgsConstructor
@@ -40,7 +42,7 @@ public class StudentResponseDto {
     Long dormitoryId;
 
     @Schema(description = "Список ID нарушений через запятую", example = "1,4,12")
-    String violationIds;
+    List<Long> violationIds;
 }
 
 
