@@ -7,7 +7,7 @@ import com.example.project.exception.ResourceNotFoundException;
 import com.example.project.mapper.ViolationMapper;
 import com.example.project.model.Student;
 import com.example.project.model.Violation;
-import com.example.project.model.ViolationType;
+import com.example.project.model.enums.ViolationType;
 import com.example.project.repository.StudentRepository;
 import com.example.project.repository.ViolationRepository;
 import com.example.project.service.ViolationService;

@@ -2,7 +2,7 @@ package com.example.project.repository;
 
 import com.example.project.dto.response.StudentResponseDto;
 import com.example.project.model.Student;
-import com.example.project.model.ViolationType;
+import com.example.project.model.enums.ViolationType;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.EntityGraph;

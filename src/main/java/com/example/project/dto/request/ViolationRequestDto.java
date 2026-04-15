@@ -1,6 +1,6 @@
 package com.example.project.dto.request;
 
-import com.example.project.model.ViolationType;
+import com.example.project.model.enums.ViolationType;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;

@@ -12,7 +12,7 @@ import com.example.project.exception.ResourceNotFoundException;
 import com.example.project.model.Contract;
 import com.example.project.model.Room;
 import com.example.project.model.Student;
-import com.example.project.model.ViolationType;
+import com.example.project.model.enums.ViolationType;
 import com.example.project.model.Violation;
 import com.example.project.mapper.StudentMapper;
 import com.example.project.repository.ContractRepository;

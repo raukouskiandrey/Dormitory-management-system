@@ -1,5 +1,6 @@
 package com.example.project.model;
 
+import com.example.project.model.enums.ViolationType;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Table;
 import jakarta.persistence.Id;

@@ -59,6 +59,12 @@ public class GlobalExceptionHandler {
                 .body(buildErrorResponse(HttpStatus.BAD_REQUEST, ex.getMessage()));
     }
 
+    @ExceptionHandler(InitiatedProblemException.class)
+    public ResponseEntity<ErrorResponse> handleInitiatedProblemException(
+            InitiatedProblemException ex) {
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(buildErrorResponse(HttpStatus.CONFLICT,ex.getMessage()));
+    }
+
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorResponse> handleAllExceptions(Exception ex) {
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)

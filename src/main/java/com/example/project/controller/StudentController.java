@@ -5,7 +5,7 @@ import com.example.project.dto.request.StudentRequestDto;
 import com.example.project.dto.request.StudentUpdateRequest;
 import com.example.project.dto.request.ViolationRequestDto;
 import com.example.project.dto.response.StudentResponseDto;
-import com.example.project.model.ViolationType;
+import com.example.project.model.enums.ViolationType;
 import com.example.project.service.StudentService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;

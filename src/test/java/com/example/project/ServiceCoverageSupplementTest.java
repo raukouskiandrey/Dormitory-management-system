@@ -2,7 +2,7 @@ package com.example.project;
 
 import com.example.project.dto.request.ViolationRequestDto;
 import com.example.project.model.Student;
-import com.example.project.model.ViolationType;
+import com.example.project.model.enums.ViolationType;
 import com.example.project.model.Violation;
 import com.example.project.repository.StudentRepository;
 import com.example.project.repository.ViolationRepository;
