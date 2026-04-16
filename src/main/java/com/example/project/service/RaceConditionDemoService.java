@@ -47,7 +47,6 @@ public class RaceConditionDemoService {
         }
 
         Map<String, Object> response = new LinkedHashMap<>();
-        response.put("header", "РЕЗУЛЬТАТЫ ПОДСЧЕТА СТУДЕНТОВ");
         response.put("expected", expected);
         response.put("unsafeResult", unsafeStudentCounter);
         response.put("syncResult", syncStudentCounter);
