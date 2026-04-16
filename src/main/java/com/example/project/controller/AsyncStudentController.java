@@ -47,7 +47,7 @@ public class AsyncStudentController {
         }
         return Map.of(
                 "status", task.getStatus(),
-                "progress", task.getProgress() != null ? task.getProgress() : 0,
+                "progress", task.getProgress(),
                 "result", task.getResult() != null ? task.getResult() : "В обработке..."
         );
     }
