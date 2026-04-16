@@ -17,7 +17,4 @@ public class AsyncTaskStorage {
         return taskStatuses.get(taskId);
     }
 
-    public Map<String, AsyncTask> getAllTasks() {
-        return taskStatuses;
-    }
 }
