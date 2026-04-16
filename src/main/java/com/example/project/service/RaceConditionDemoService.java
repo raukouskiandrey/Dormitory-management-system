@@ -24,22 +24,23 @@ public class RaceConditionDemoService {
         syncStudentCounter = 0;
         atomicStudentCounter.set(0);
 
-        log.info("Запуск теста: 50 потоков одновременно инкрементируют счетчик студентов.");
+        log.info("Запуск теста: {} потоков одновременно инкрементируют счетчик.", THREAD_COUNT);
 
-        ExecutorService executor = Executors.newFixedThreadPool(THREAD_COUNT);
-
-        for (int i = 0; i < THREAD_COUNT; i++) {
-            executor.submit(() -> {
-                for (int j = 0; j < ITERATIONS; j++) {
-                    unsafeStudentCounter++;
-                    incrementSynchronized();
-                    atomicStudentCounter.incrementAndGet();
-                }
-            });
+        try (ExecutorService executor = Executors.newFixedThreadPool(THREAD_COUNT)) {
+            for (int i = 0; i < THREAD_COUNT; i++) {
+                executor.submit(() -> {
+                    for (int j = 0; j < ITERATIONS; j++) {
+                        unsafeStudentCounter++;
+                        incrementSynchronized();
+                        atomicStudentCounter.incrementAndGet();
+                    }
+                });
+            }
+            executor.shutdown();
+            if (!executor.awaitTermination(1, TimeUnit.MINUTES)) {
+                log.warn("Потоки не успели завершиться за отведенное время!");
+            }
         }
-
-        executor.shutdown();
-        executor.awaitTermination(1, TimeUnit.MINUTES);
 
         log.info("=== РЕЗУЛЬТАТЫ ПОДСЧЕТА СТУДЕНТОВ ===");
         log.info("Ожидалось: {}", THREAD_COUNT * ITERATIONS);
@@ -51,4 +52,5 @@ public class RaceConditionDemoService {
     private synchronized void incrementSynchronized() {
         syncStudentCounter++;
     }
+
 }

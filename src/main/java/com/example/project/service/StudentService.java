@@ -266,7 +266,7 @@ public class StudentService {
         studentRepository.save(student);
 
         if (creation.isInitiateProblem()) {
-            throw new RuntimeException("Ошибка для проверки транзакции");
+            throw new BadRequestException("Ошибка для проверки транзакции");
         }
 
         Contract contract = Contract.builder()

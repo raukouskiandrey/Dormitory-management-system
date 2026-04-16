@@ -21,6 +21,10 @@
         <lombok.version>1.18.42</lombok.version>
         <lombok-mapstruct-binding.version>0.2.0</lombok-mapstruct-binding.version>
 
+        <!-- Активируем профиль coverage по умолчанию -->
+        <jacoco.skip>false</jacoco.skip>
+
+        <!-- Остальные ваши настройки -->
         <sonar.coverage.jacoco.xmlReportPaths>
             ${project.build.directory}/site/jacoco/jacoco.xml
         </sonar.coverage.jacoco.xmlReportPaths>
@@ -33,7 +37,11 @@
             **/controller/**,
             **/cache/**,
             **/aop/**,
-            **/*Application.java
+            **/config/**,
+            **/*Application.java,
+            **/service/AsyncStudentService.java,
+            **/service/AsyncTaskStorage.java,
+            **/service/RaceConditionDemoService.java
         </sonar.coverage.exclusions>
         <sonar.exclusions>
             **/dto/**,

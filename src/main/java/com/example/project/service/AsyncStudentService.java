@@ -76,7 +76,7 @@ public class AsyncStudentService {
             task.setEndTime(LocalDateTime.now());
             LOG.info("Отчет готов (Task ID: {})", taskId);
 
-        } catch (InterruptedException e) {
+        } catch (InterruptedException _) {
             Thread.currentThread().interrupt();
             task.setStatus(AsyncTaskStatus.CANCELLED);
             task.setResult("Задача прервана");

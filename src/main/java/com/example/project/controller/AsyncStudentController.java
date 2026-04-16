@@ -4,7 +4,10 @@ import com.example.project.service.AsyncStudentService;
 import com.example.project.service.RaceConditionDemoService;
 import com.example.project.service.AsyncTaskStorage;
 import com.example.project.model.AsyncTask;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 import java.util.Map;
 import java.util.UUID;
@@ -39,7 +42,9 @@ public class AsyncStudentController {
     @GetMapping("/status/{taskId}")
     public Map<String, Object> getStatus(@PathVariable String taskId) {
         AsyncTask task = taskStorage.getTask(taskId);
-        if (task == null) return Map.of("error", "Задача не найдена");
+        if (task == null) {
+            return Map.of("error", "Задача не найдена");
+        }
         return Map.of(
                 "status", task.getStatus(),
                 "progress", task.getProgress() != null ? task.getProgress() : 0,
