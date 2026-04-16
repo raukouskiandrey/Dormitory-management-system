@@ -3,6 +3,8 @@ package com.example.project.service;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
@@ -19,12 +21,13 @@ public class RaceConditionDemoService {
     private static final int THREAD_COUNT = 50;
     private static final int ITERATIONS = 1000;
 
-    public void runAllDemos() throws InterruptedException {
+    public Map<String, Object> runAllDemos() throws InterruptedException {
         unsafeStudentCounter = 0;
         syncStudentCounter = 0;
         atomicStudentCounter.set(0);
 
-        log.info("Запуск теста: {} потоков одновременно инкрементируют счетчик.", THREAD_COUNT);
+        int expected = THREAD_COUNT * ITERATIONS;
+        log.info("Запуск теста: {} потоков...", THREAD_COUNT);
 
         try (ExecutorService executor = Executors.newFixedThreadPool(THREAD_COUNT)) {
             for (int i = 0; i < THREAD_COUNT; i++) {
@@ -37,20 +40,24 @@ public class RaceConditionDemoService {
                 });
             }
             executor.shutdown();
-            if (!executor.awaitTermination(1, TimeUnit.MINUTES)) {
-                log.warn("Потоки не успели завершиться за отведенное время!");
+            boolean finishedCleanly = executor.awaitTermination(1, TimeUnit.MINUTES);
+            if (!finishedCleanly) {
+                log.warn("Внимание: потоки не завершились вовремя!");
             }
         }
 
-        log.info("=== РЕЗУЛЬТАТЫ ПОДСЧЕТА СТУДЕНТОВ ===");
-        log.info("Ожидалось: {}", THREAD_COUNT * ITERATIONS);
-        log.info("Небезопасный результат (потери данных): {}", unsafeStudentCounter);
-        log.info("Синхронизированный результат: {}", syncStudentCounter);
-        log.info("Атомарный результат: {}", atomicStudentCounter.get());
+        Map<String, Object> response = new LinkedHashMap<>();
+        response.put("header", "РЕЗУЛЬТАТЫ ПОДСЧЕТА СТУДЕНТОВ");
+        response.put("expected", expected);
+        response.put("unsafeResult", unsafeStudentCounter);
+        response.put("syncResult", syncStudentCounter);
+        response.put("atomicResult", atomicStudentCounter.get());
+        response.put("status", "COMPLETED");
+
+        return response;
     }
 
     private synchronized void incrementSynchronized() {
         syncStudentCounter++;
     }
-
 }

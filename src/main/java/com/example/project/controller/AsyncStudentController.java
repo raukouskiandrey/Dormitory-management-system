@@ -53,8 +53,7 @@ public class AsyncStudentController {
     }
 
     @GetMapping("/concurrency-test")
-    public String testConcurrency() throws InterruptedException {
-        raceConditionService.runAllDemos();
-        return "Тестирование многопоточности завершено. Результаты в логах консоли.";
+    public Map<String, Object> testConcurrency() throws InterruptedException {
+        return raceConditionService.runAllDemos();
     }
 }
