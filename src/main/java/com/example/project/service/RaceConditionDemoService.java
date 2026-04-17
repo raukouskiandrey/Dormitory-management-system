@@ -39,7 +39,6 @@ public class RaceConditionDemoService {
                     }
                 });
             }
-            executor.shutdown();
             boolean finishedCleanly = executor.awaitTermination(1, TimeUnit.MINUTES);
             if (!finishedCleanly) {
                 log.warn("Внимание: потоки не завершились вовремя!");
