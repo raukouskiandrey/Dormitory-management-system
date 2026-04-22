@@ -39,10 +39,7 @@ public class RaceConditionDemoService {
                     }
                 });
             }
-            boolean finishedCleanly = executor.awaitTermination(1, TimeUnit.MINUTES);
-            if (!finishedCleanly) {
-                log.warn("Внимание: потоки не завершились вовремя!");
-            }
+
         }
 
         Map<String, Object> response = new LinkedHashMap<>();
