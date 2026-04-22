@@ -15,7 +15,7 @@ import java.time.LocalDateTime;
 public class AsyncStudentService {
 
     private static final Logger LOG = LoggerFactory.getLogger(AsyncStudentService.class);
-    private static final int SIMULATION_DELAY_MS = 6000;
+    private static final int SIMULATION_DELAY_MS = 5000;
     private static final int PROGRESS_30 = 30;
     private static final int PROGRESS_60 = 60;
     private static final int PROGRESS_90 = 90;
