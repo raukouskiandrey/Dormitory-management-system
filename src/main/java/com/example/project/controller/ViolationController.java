@@ -2,6 +2,7 @@ package com.example.project.controller;
 
 import com.example.project.dto.request.ViolationRequestDto;
 import com.example.project.dto.response.ViolationResponseDto;
+import com.example.project.model.enums.ViolationType;
 import com.example.project.service.ViolationService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -17,6 +18,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
@@ -33,17 +35,29 @@ public class ViolationController {
     }
 
     @GetMapping("")
-    @Operation(summary = "Список всех нарушений", description = "Возвращает историю всех зафиксированных нарушений")
+    @Operation(summary = "Список всех нарушений")
     public ResponseEntity<List<ViolationResponseDto>> getViolations() {
         return ResponseEntity.ok(violationService.findViolations());
     }
 
-    @PostMapping("/{studentId}")
+    @GetMapping("/filter")
     @Operation(
-            summary = "Зафиксировать нарушение",
-            description = "Создает запись о нарушении и привязывает её к конкретному студенту")
+            summary = "Поиск нарушений с фильтрами",
+            description = "Фильтр по типу нарушения, поиск по ФИО студента, сортировка по дате"
+    )
+    public ResponseEntity<List<ViolationResponseDto>> searchViolations(
+            @RequestParam(required = false) ViolationType violationType,
+            @RequestParam(required = false) String fio,
+            @RequestParam(required = false, defaultValue = "desc") String sortByDate
+    ) {
+        return ResponseEntity.ok(
+                violationService.findViolationsFiltered(violationType, fio, sortByDate)
+        );
+    }
+
+    @PostMapping("/{studentId}")
+    @Operation(summary = "Зафиксировать нарушение")
     public ResponseEntity<ViolationResponseDto> createViolation(
-            @Parameter(description = "ID студента-нарушителя", example = "1")
             @PathVariable Long studentId,
             @Valid @RequestBody ViolationRequestDto violation) {
         ViolationResponseDto newViolation = violationService.createViolation(studentId, violation);
@@ -51,30 +65,24 @@ public class ViolationController {
     }
 
     @PutMapping("/{id}")
-    @Operation(
-            summary = "Полное обновление данных о нарушении",
-            description = "Позволяет полностью изменить информацию о зафиксированном инциденте")
+    @Operation(summary = "Полное обновление данных о нарушении")
     public ResponseEntity<ViolationResponseDto> updateViolationById(
-            @Parameter(description = "ID записи о нарушении", example = "10")
             @PathVariable Long id,
             @Valid @RequestBody ViolationRequestDto violation) {
         return ResponseEntity.ok(violationService.updateViolation(id, violation));
     }
 
     @PatchMapping("/{id}")
-    @Operation(summary = "Частичное исправление нарушения", description = "Позволяет изменить только отдельные поля ")
+    @Operation(summary = "Частичное исправление нарушения")
     public ResponseEntity<ViolationResponseDto> updatePatchViolationById(
-            @Parameter(description = "ID записи о нарушении", example = "10")
             @PathVariable Long id,
             @RequestBody ViolationRequestDto violation) {
         return ResponseEntity.ok(violationService.updatePatchViolation(id, violation));
     }
 
     @DeleteMapping("/{id}")
-    @Operation(summary = "Удалить запись о нарушении", description = "Удаление нарушения")
-    public ResponseEntity<Void> deleteViolationById(
-            @Parameter(description = "ID удаляемой записи", example = "10")
-            @PathVariable Long id) {
+    @Operation(summary = "Удалить запись о нарушении")
+    public ResponseEntity<Void> deleteViolationById(@PathVariable Long id) {
         violationService.deleteViolationById(id);
         return ResponseEntity.noContent().build();
     }

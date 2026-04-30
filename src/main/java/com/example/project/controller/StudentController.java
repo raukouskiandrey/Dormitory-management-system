@@ -214,4 +214,39 @@ public class StudentController {
         return ResponseEntity.status(HttpStatus.CREATED).body(
                 studentService.assignViolationsToStudentsWithTx(requests));
     }
+
+    @GetMapping("/filter/advanced")
+    public ResponseEntity<Page<StudentResponseDto>> getAdvancedFilter(
+            @RequestParam(required = false) Integer chs,
+            @RequestParam(required = false) Boolean hasViolations,
+            @RequestParam(required = false) ViolationType violationType,
+            @RequestParam(required = false) Integer age,
+            @RequestParam(required = false) Long dormitoryId,
+            @RequestParam(required = false) Long roomId,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
+
+        return ResponseEntity.ok(
+                studentService.findStudentsAdvanced(
+                        chs,
+                        hasViolations,
+                        violationType,
+                        age,
+                        dormitoryId,
+                        roomId,
+                        page,
+                        size
+                )
+        );
+    }
+    @GetMapping("/search/fio")
+    @Operation(
+            summary = "Поиск студентов по ФИО",
+            description = "Ищет студентов по фамилии, имени, отчеству или их комбинации. Поиск частичный, без учета регистра")
+    public ResponseEntity<Page<StudentResponseDto>> searchStudentsByFio(
+            @RequestParam String fio,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
+        return ok(studentService.searchStudentsByFio(fio, page, size));
+    }
 }

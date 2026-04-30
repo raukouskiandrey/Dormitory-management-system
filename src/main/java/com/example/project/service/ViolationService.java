@@ -1,6 +1,5 @@
 package com.example.project.service;
 
-
 import com.example.project.dto.request.ViolationRequestDto;
 import com.example.project.dto.response.ViolationResponseDto;
 import com.example.project.exception.BadRequestException;
@@ -8,11 +7,13 @@ import com.example.project.exception.ResourceNotFoundException;
 import com.example.project.mapper.ViolationMapper;
 import com.example.project.model.Student;
 import com.example.project.model.Violation;
+import com.example.project.model.enums.ViolationType;
 import com.example.project.repository.StudentRepository;
 import com.example.project.repository.ViolationRepository;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
+import java.util.Comparator;
 import java.util.List;
 
 @Service
@@ -31,7 +32,34 @@ public class ViolationService {
     }
 
     public List<ViolationResponseDto> findViolations() {
-        List<Violation> violations = violationRepository.findAll();
+        List<Violation> violations = violationRepository.findAllWithStudents();
+        return violationMapper.toDtoList(violations);
+    }
+
+    /**
+     * Поиск с фильтрами:
+     * @param violationType - фильтр по типу нарушения (null = все)
+     * @param fio           - поиск по ФИО студента (null или "" = все)
+     * @param sortByDate    - "asc" = старые первые, "desc" = новые первые
+     */
+    public List<ViolationResponseDto> findViolationsFiltered(
+            ViolationType violationType,
+            String fio,
+            String sortByDate
+    ) {
+        List<Violation> violations = violationRepository.findAllWithFilters(violationType, fio);
+
+        // Сортировка на Java-уровне, чтобы надёжно работало с DISTINCT
+        Comparator<Violation> comparator = Comparator.comparing(
+                v -> LocalDate.parse(v.getDate())
+        );
+
+        if ("asc".equalsIgnoreCase(sortByDate)) {
+            violations.sort(comparator); // старые первые
+        } else {
+            violations.sort(comparator.reversed()); // новые первые (по умолчанию)
+        }
+
         return violationMapper.toDtoList(violations);
     }
 
@@ -42,13 +70,27 @@ public class ViolationService {
 
     public ViolationResponseDto createViolation(Long studentId, ViolationRequestDto request) {
         Student student = studentRepository.findById(studentId)
-                .orElseThrow(() -> new ResourceNotFoundException("Студент с id не найден: " + studentId));
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "Студент с id не найден: " + studentId));
+
         validateViolationDate(request.getDate());
+
         Violation violation = violationMapper.toEntity(request);
+
+        if (violation.getStudents() == null) {
+            violation.setStudents(new java.util.HashSet<>());
+        }
+
+        if (student.getViolations() == null) {
+            student.setViolations(new java.util.HashSet<>());
+        }
 
         student.getViolations().add(violation);
         violation.getStudents().add(student);
+
         violationRepository.save(violation);
+        studentRepository.save(student);
+
         return violationMapper.toDto(violation);
     }
 

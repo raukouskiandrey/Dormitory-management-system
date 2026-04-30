@@ -56,4 +56,104 @@ public interface StudentRepository extends JpaRepository<Student, Long> {
                 @Param("chs") Integer chs,
                 @Param("violationType") String violationType,
                 Pageable pageable);
+
+    @Query(
+            value = """
+                SELECT DISTINCT s FROM Student s
+                LEFT JOIN FETCH s.room r
+                LEFT JOIN FETCH r.dormitory d
+                LEFT JOIN FETCH s.contract c
+                LEFT JOIN FETCH s.violations vf
+                WHERE (:chs IS NULL OR s.chs = :chs)
+                  AND (:age IS NULL OR s.age = :age)
+                  AND (:dormitoryId IS NULL OR d.id = :dormitoryId)
+                  AND (:roomId IS NULL OR r.id = :roomId)
+                  AND (
+                        :hasViolations IS NULL
+                        OR (
+                            :hasViolations = true
+                            AND EXISTS (
+                                SELECT v1.id
+                                FROM Student s1 JOIN s1.violations v1
+                                WHERE s1 = s
+                            )
+                        )
+                        OR (
+                            :hasViolations = false
+                            AND NOT EXISTS (
+                                SELECT v2.id
+                                FROM Student s2 JOIN s2.violations v2
+                                WHERE s2 = s
+                            )
+                        )
+                  )
+                  AND (
+                        :violationType IS NULL
+                        OR EXISTS (
+                            SELECT v3.id
+                            FROM Student s3 JOIN s3.violations v3
+                            WHERE s3 = s AND v3.violationType = :violationType
+                        )
+                  )
+                """,
+            countQuery = """
+                SELECT COUNT(DISTINCT s) FROM Student s
+                LEFT JOIN s.room r
+                LEFT JOIN r.dormitory d
+                WHERE (:chs IS NULL OR s.chs = :chs)
+                  AND (:age IS NULL OR s.age = :age)
+                  AND (:dormitoryId IS NULL OR d.id = :dormitoryId)
+                  AND (:roomId IS NULL OR r.id = :roomId)
+                  AND (
+                        :hasViolations IS NULL
+                        OR (
+                            :hasViolations = true
+                            AND EXISTS (
+                                SELECT v1.id
+                                FROM Student s1 JOIN s1.violations v1
+                                WHERE s1 = s
+                            )
+                        )
+                        OR (
+                            :hasViolations = false
+                            AND NOT EXISTS (
+                                SELECT v2.id
+                                FROM Student s2 JOIN s2.violations v2
+                                WHERE s2 = s
+                            )
+                        )
+                  )
+                  AND (
+                        :violationType IS NULL
+                        OR EXISTS (
+                            SELECT v3.id
+                            FROM Student s3 JOIN s3.violations v3
+                            WHERE s3 = s AND v3.violationType = :violationType
+                        )
+                  )
+                """
+    )
+    Page<Student> findAdvanced(
+            @Param("chs") Integer chs,
+            @Param("hasViolations") Boolean hasViolations,
+            @Param("violationType") ViolationType violationType,
+            @Param("age") Integer age,
+            @Param("dormitoryId") Long dormitoryId,
+            @Param("roomId") Long roomId,
+            Pageable pageable
+    );
+
+    @EntityGraph(attributePaths = {"violations", "room", "contract"})
+    @Query("""
+        SELECT s
+        FROM Student s
+        WHERE LOWER(
+            CONCAT(
+                COALESCE(s.surname, ''), ' ',
+                COALESCE(s.name, ''), ' ',
+                COALESCE(s.patronymic, '')
+            )
+        ) LIKE LOWER(CONCAT('%', :fio, '%'))
+        """)
+    Page<Student> searchByFio(@Param("fio") String fio, Pageable pageable);
 }

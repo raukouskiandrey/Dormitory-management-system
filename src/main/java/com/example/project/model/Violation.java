@@ -15,6 +15,7 @@ import lombok.Builder;
 import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;
 
+import java.util.HashSet;
 import java.util.Set;
 
 @Getter
@@ -34,6 +35,7 @@ public class Violation {
     @Enumerated(EnumType.STRING)
     private ViolationType violationType;
 
+    @Builder.Default
     @ManyToMany(mappedBy = "violations")
-    private Set<Student> students;
+    private Set<Student> students = new HashSet<>();
 }

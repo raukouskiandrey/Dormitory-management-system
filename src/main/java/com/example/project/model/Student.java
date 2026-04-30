@@ -18,6 +18,7 @@ import lombok.Builder;
 import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;
 
+import java.util.HashSet;
 import java.util.Set;
 
 @Getter
@@ -57,11 +58,12 @@ public class Student {
     @JoinColumn(name = "contract_id")
     private Contract contract;
 
+    @Builder.Default
     @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(
             name = "student_violations",
             joinColumns = @JoinColumn(name = "student_id"),
             inverseJoinColumns = @JoinColumn(name = "violation_id")
     )
-    private Set<Violation> violations;
+    private Set<Violation> violations = new HashSet<>();
 }

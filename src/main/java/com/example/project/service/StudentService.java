@@ -388,4 +388,45 @@ public class StudentService {
     public List<StudentResponseDto> assignViolationsToStudentsWithTx(List<ViolationRequestDto> requests) {
         return assignViolationsToStudentsNoTx(requests);
     }
+
+    public Page<StudentResponseDto> findStudentsAdvanced(
+            Integer chs,
+            Boolean hasViolations,
+            ViolationType violationType,
+            Integer age,
+            Long dormitoryId,
+            Long roomId,
+            int page,
+            int size) {
+
+        Pageable pageable = PageRequest.of(page, size, Sort.by("id"));
+
+        // Если "есть нарушения" не выбрано как true,
+        // то тип нарушения должен игнорироваться
+        ViolationType normalizedViolationType =
+                Boolean.TRUE.equals(hasViolations) ? violationType : null;
+
+        Page<Student> studentPage = studentRepository.findAdvanced(
+                chs,
+                hasViolations,
+                normalizedViolationType,
+                age,
+                dormitoryId,
+                roomId,
+                pageable
+        );
+
+        return studentPage.map(studentMapper::toDto);
+    }
+
+    public Page<StudentResponseDto> searchStudentsByFio(String fio, int page, int size) {
+        if (fio == null || fio.trim().isEmpty()) {
+            throw new BadRequestException("Параметр fio не может быть пустым");
+        }
+
+        Pageable pageable = PageRequest.of(page, size, Sort.by("id").ascending());
+
+        return studentRepository.searchByFio(fio.trim(), pageable)
+                .map(studentMapper::toDto);
+    }
 }
