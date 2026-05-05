@@ -142,9 +142,3 @@ build/
 
 ### VS Code ###
 .vscode/
-# Maven Wrapper
-.mvn/
-mvnw
-mvnw.cmd.gitattributes
-.gitattributes
-mvnw.cmd

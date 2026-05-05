@@ -42,7 +42,7 @@ class ViolationServiceTest {
         List<ViolationResponseDto> expectedDtos = List.of(new ViolationResponseDto(), new ViolationResponseDto());
 
         when(violationRepository.findAll()).thenReturn(violations);
-        when(violationMapper.toDtoList(violations)).thenReturn(expectedDtos);
+        lenient().when(violationMapper.toDtoList(violations)).thenReturn(expectedDtos);
 
         List<ViolationResponseDto> result = violationService.findViolations();
 
