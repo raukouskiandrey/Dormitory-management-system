@@ -39,17 +39,21 @@ class ViolationServiceTest {
     @DisplayName("findViolations - успешное получение списка")
     void findViolations_success() {
         List<Violation> violations = List.of(new Violation(), new Violation());
-        List<ViolationResponseDto> expectedDtos = List.of(new ViolationResponseDto(), new ViolationResponseDto());
+        List<ViolationResponseDto> expectedDtos = List.of(
+                new ViolationResponseDto(),
+                new ViolationResponseDto()
+        );
 
-        when(violationRepository.findAll()).thenReturn(violations);
+        when(violationRepository.findAllWithStudents()).thenReturn(violations);
         when(violationMapper.toDtoList(any())).thenReturn(expectedDtos);
 
         List<ViolationResponseDto> result = violationService.findViolations();
 
         assertNotNull(result);
         assertEquals(2, result.size());
-        verify(violationRepository).findAll();
+        verify(violationRepository).findAllWithStudents();
     }
+
     @Test
     @DisplayName("findViolationById - успешный поиск")
     void findViolationById_success() {
