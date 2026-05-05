@@ -42,14 +42,14 @@ class ViolationServiceTest {
         List<ViolationResponseDto> expectedDtos = List.of(new ViolationResponseDto(), new ViolationResponseDto());
 
         when(violationRepository.findAll()).thenReturn(violations);
-        lenient().when(violationMapper.toDtoList(violations)).thenReturn(expectedDtos);
+        when(violationMapper.toDtoList(any())).thenReturn(expectedDtos);
 
         List<ViolationResponseDto> result = violationService.findViolations();
 
         assertNotNull(result);
         assertEquals(2, result.size());
+        verify(violationRepository).findAll();
     }
-
     @Test
     @DisplayName("findViolationById - успешный поиск")
     void findViolationById_success() {
