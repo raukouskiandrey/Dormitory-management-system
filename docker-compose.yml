@@ -29,6 +29,7 @@ services:
       DB_NAME: ${POSTGRES_DB:-postgres}
       DB_USER: ${POSTGRES_USER:-postgres}
       DB_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      PORT: 8080
     ports:
       - "8080:8080"
     depends_on:
@@ -41,6 +42,8 @@ services:
     build:
       context: ./frontend
       dockerfile: Dockerfile
+      args:
+        REACT_APP_API_URL: http://localhost:8080
     container_name: project-frontend
     ports:
       - "3000:80"
