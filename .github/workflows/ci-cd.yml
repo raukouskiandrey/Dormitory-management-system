@@ -97,10 +97,44 @@ jobs:
           CI: false
         run: npm run build
 
+  docker-build:
+    name: Docker Build
+    runs-on: ubuntu-latest
+    needs: frontend-build
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build backend Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./backend
+          file: ./backend/Dockerfile
+          push: false
+          tags: project-backend:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Build frontend Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./frontend
+          file: ./frontend/Dockerfile
+          push: false
+          tags: project-frontend:latest
+          build-args: |
+            REACT_APP_API_URL=${{ vars.APP_URL }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
   deploy:
     name: Deploy
     runs-on: ubuntu-latest
-    needs: frontend-build
+    needs: docker-build
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
 
     steps:
@@ -138,4 +172,5 @@ jobs:
 
           echo "Backend healthcheck failed"
           cat response.json || true
+          exit 1
           exit 1
