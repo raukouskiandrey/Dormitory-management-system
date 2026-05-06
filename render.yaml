@@ -1,0 +1,32 @@
+services:
+  - type: web
+    name: dormitory-backend
+    runtime: docker
+    region: frankfurt
+    plan: free
+    rootDir: backend
+    dockerfilePath: ./backend/Dockerfile
+    autoDeploy: true
+    healthCheckPath: /actuator/health
+    envVars:
+      - key: DB_HOST
+        sync: false
+      - key: DB_PORT
+        value: 5432
+      - key: DB_NAME
+        sync: false
+      - key: DB_USER
+        sync: false
+      - key: DB_PASSWORD
+        sync: false
+      - key: PORT
+        value: 8080
+
+  - type: static
+    name: dormitory-frontend
+    rootDir: frontend
+    buildCommand: npm install && npm run build
+    publishPath: build
+    envVars:
+      - key: REACT_APP_API_URL
+        value: https://dormitory-backend.onrender.com
