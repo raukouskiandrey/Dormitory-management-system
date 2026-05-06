@@ -2,10 +2,6 @@ SET search_path TO public;
 
 TRUNCATE TABLE student_violations, students, violations, rooms, contracts, dormitories RESTART IDENTITY CASCADE;
 
---
--- Data for Name: contracts
---
-
 INSERT INTO public.contracts (id, number, start_date, end_date) VALUES (1, 1001, '2024-09-01', '2025-06-30');
 INSERT INTO public.contracts (id, number, start_date, end_date) VALUES (2, 1003, '2024-09-01', '2025-06-30');
 INSERT INTO public.contracts (id, number, start_date, end_date) VALUES (3, 1007, '2024-09-01', '2025-06-30');
@@ -27,25 +23,13 @@ INSERT INTO public.contracts (id, number, start_date, end_date) VALUES (18, 1005
 INSERT INTO public.contracts (id, number, start_date, end_date) VALUES (19, 1004, '2024-09-01', '2025-06-30');
 INSERT INTO public.contracts (id, number, start_date, end_date) VALUES (20, 1002, '2024-09-01', '2025-06-30');
 
---
--- Data for Name: dormitories
---
-
 INSERT INTO public.dormitories (id, name, address) VALUES (1, 'Общежитие №1', 'ул. Студенческая, д. 1');
-
---
--- Data for Name: rooms
---
 
 INSERT INTO public.rooms (id, number, total_places, dormitory_id) VALUES (1, 101, 4, 1);
 INSERT INTO public.rooms (id, number, total_places, dormitory_id) VALUES (2, 102, 4, 1);
 INSERT INTO public.rooms (id, number, total_places, dormitory_id) VALUES (3, 103, 4, 1);
 INSERT INTO public.rooms (id, number, total_places, dormitory_id) VALUES (4, 104, 4, 1);
 INSERT INTO public.rooms (id, number, total_places, dormitory_id) VALUES (5, 105, 4, 1);
-
---
--- Data for Name: students
---
 
 INSERT INTO public.students (id, name, surname, patronymic, phone_number, age, chs, room_id, contract_id) VALUES (1, 'Иван', 'Иванов', 'Иванович', '+79001111111', 19, 85, 1, 1);
 INSERT INTO public.students (id, name, surname, patronymic, phone_number, age, chs, room_id, contract_id) VALUES (2, 'Сергей', 'Сергеев', 'Сергеевич', '+79003333333', 21, 75, 1, 2);
@@ -68,19 +52,11 @@ INSERT INTO public.students (id, name, surname, patronymic, phone_number, age, c
 INSERT INTO public.students (id, name, surname, patronymic, phone_number, age, chs, room_id, contract_id) VALUES (19, 'Алексей', 'Алексеев', 'Алексеевич', '+79004444444', 19, 88, 1, 19);
 INSERT INTO public.students (id, name, surname, patronymic, phone_number, age, chs, room_id, contract_id) VALUES (20, 'Пётр', 'Петров', 'Петрович', '+79002222222', 20, 90, 1, 20);
 
---
--- Data for Name: violations
---
-
 INSERT INTO public.violations (id, date, violation_type) VALUES (1, '2024-10-05', 'SMOKING');
 INSERT INTO public.violations (id, date, violation_type) VALUES (2, '2024-11-12', 'DRINKING');
 INSERT INTO public.violations (id, date, violation_type) VALUES (3, '2024-12-01', 'NOISE');
 INSERT INTO public.violations (id, date, violation_type) VALUES (4, '2025-01-15', 'MESS');
 INSERT INTO public.violations (id, date, violation_type) VALUES (5, '2025-02-20', 'DAMAGE');
-
---
--- Data for Name: student_violations
---
 
 INSERT INTO public.student_violations (student_id, violation_id) VALUES (1, 1);
 INSERT INTO public.student_violations (student_id, violation_id) VALUES (2, 2);
@@ -88,10 +64,6 @@ INSERT INTO public.student_violations (student_id, violation_id) VALUES (3, 3);
 INSERT INTO public.student_violations (student_id, violation_id) VALUES (4, 4);
 INSERT INTO public.student_violations (student_id, violation_id) VALUES (5, 5);
 INSERT INTO public.student_violations (student_id, violation_id) VALUES (1, 3);
-
---
--- Sequence reset
---
 
 SELECT pg_catalog.setval('public.contracts_id_seq', 20, true);
 SELECT pg_catalog.setval('public.dormitories_id_seq', 1, true);
