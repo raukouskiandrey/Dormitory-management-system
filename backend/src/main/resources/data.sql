@@ -1,23 +1,9 @@
---
--- PostgreSQL database dump
---
+SET search_path TO public;
 
--- Dumped from database version 16.2
--- Dumped by pg_dump version 16.2
-
-SET statement_timeout = 0;
-SET lock_timeout = 0;
-SET idle_in_transaction_session_timeout = 0;
-SET client_encoding = 'UTF8';
-SET standard_conforming_strings = on;
-SELECT pg_catalog.set_config('search_path', '', false);
-SET check_function_bodies = false;
-SET xmloption = content;
-SET client_min_messages = warning;
-SET row_security = off;
+TRUNCATE TABLE student_violations, students, violations, rooms, contracts, dormitories RESTART IDENTITY CASCADE;
 
 --
--- Data for Name: contracts; Type: TABLE DATA; Schema: public; Owner: postgres
+-- Data for Name: contracts
 --
 
 INSERT INTO public.contracts (id, number, start_date, end_date) VALUES (1, 1001, '2024-09-01', '2025-06-30');
@@ -41,16 +27,14 @@ INSERT INTO public.contracts (id, number, start_date, end_date) VALUES (18, 1005
 INSERT INTO public.contracts (id, number, start_date, end_date) VALUES (19, 1004, '2024-09-01', '2025-06-30');
 INSERT INTO public.contracts (id, number, start_date, end_date) VALUES (20, 1002, '2024-09-01', '2025-06-30');
 
-
 --
--- Data for Name: dormitories; Type: TABLE DATA; Schema: public; Owner: postgres
+-- Data for Name: dormitories
 --
 
 INSERT INTO public.dormitories (id, name, address) VALUES (1, 'Общежитие №1', 'ул. Студенческая, д. 1');
 
-
 --
--- Data for Name: rooms; Type: TABLE DATA; Schema: public; Owner: postgres
+-- Data for Name: rooms
 --
 
 INSERT INTO public.rooms (id, number, total_places, dormitory_id) VALUES (1, 101, 4, 1);
@@ -59,9 +43,8 @@ INSERT INTO public.rooms (id, number, total_places, dormitory_id) VALUES (3, 103
 INSERT INTO public.rooms (id, number, total_places, dormitory_id) VALUES (4, 104, 4, 1);
 INSERT INTO public.rooms (id, number, total_places, dormitory_id) VALUES (5, 105, 4, 1);
 
-
 --
--- Data for Name: students; Type: TABLE DATA; Schema: public; Owner: postgres
+-- Data for Name: students
 --
 
 INSERT INTO public.students (id, name, surname, patronymic, phone_number, age, chs, room_id, contract_id) VALUES (1, 'Иван', 'Иванов', 'Иванович', '+79001111111', 19, 85, 1, 1);
@@ -85,9 +68,8 @@ INSERT INTO public.students (id, name, surname, patronymic, phone_number, age, c
 INSERT INTO public.students (id, name, surname, patronymic, phone_number, age, chs, room_id, contract_id) VALUES (19, 'Алексей', 'Алексеев', 'Алексеевич', '+79004444444', 19, 88, 1, 19);
 INSERT INTO public.students (id, name, surname, patronymic, phone_number, age, chs, room_id, contract_id) VALUES (20, 'Пётр', 'Петров', 'Петрович', '+79002222222', 20, 90, 1, 20);
 
-
 --
--- Data for Name: violations; Type: TABLE DATA; Schema: public; Owner: postgres
+-- Data for Name: violations
 --
 
 INSERT INTO public.violations (id, date, violation_type) VALUES (1, '2024-10-05', 'SMOKING');
@@ -96,9 +78,8 @@ INSERT INTO public.violations (id, date, violation_type) VALUES (3, '2024-12-01'
 INSERT INTO public.violations (id, date, violation_type) VALUES (4, '2025-01-15', 'MESS');
 INSERT INTO public.violations (id, date, violation_type) VALUES (5, '2025-02-20', 'DAMAGE');
 
-
 --
--- Data for Name: student_violations; Type: TABLE DATA; Schema: public; Owner: postgres
+-- Data for Name: student_violations
 --
 
 INSERT INTO public.student_violations (student_id, violation_id) VALUES (1, 1);
@@ -108,43 +89,12 @@ INSERT INTO public.student_violations (student_id, violation_id) VALUES (4, 4);
 INSERT INTO public.student_violations (student_id, violation_id) VALUES (5, 5);
 INSERT INTO public.student_violations (student_id, violation_id) VALUES (1, 3);
 
-
 --
--- Name: contracts_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
+-- Sequence reset
 --
 
 SELECT pg_catalog.setval('public.contracts_id_seq', 20, true);
-
-
---
--- Name: dormitories_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
---
-
 SELECT pg_catalog.setval('public.dormitories_id_seq', 1, true);
-
-
---
--- Name: rooms_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
---
-
 SELECT pg_catalog.setval('public.rooms_id_seq', 5, true);
-
-
---
--- Name: students_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
---
-
 SELECT pg_catalog.setval('public.students_id_seq', 20, true);
-
-
---
--- Name: violations_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
---
-
 SELECT pg_catalog.setval('public.violations_id_seq', 5, true);
-
-
---
--- PostgreSQL database dump complete
---
-
