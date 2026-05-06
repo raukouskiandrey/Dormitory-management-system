@@ -1,3 +1,10 @@
+databases:
+  - name: dormitory-db
+    region: frankfurt
+    plan: free
+    databaseName: dormitory
+    user: dormitory_user
+
 services:
   - type: web
     name: dormitory-backend
@@ -10,20 +17,31 @@ services:
     healthCheckPath: /actuator/health
     envVars:
       - key: DB_HOST
-        sync: false
+        fromDatabase:
+          name: dormitory-db
+          property: host
       - key: DB_PORT
-        value: 5432
+        fromDatabase:
+          name: dormitory-db
+          property: port
       - key: DB_NAME
-        sync: false
+        fromDatabase:
+          name: dormitory-db
+          property: database
       - key: DB_USER
-        sync: false
+        fromDatabase:
+          name: dormitory-db
+          property: user
       - key: DB_PASSWORD
-        sync: false
+        fromDatabase:
+          name: dormitory-db
+          property: password
       - key: PORT
         value: 8080
 
   - type: static
     name: dormitory-frontend
+    region: frankfurt
     rootDir: frontend
     buildCommand: npm install && npm run build
     publishPath: build
