@@ -421,7 +421,7 @@ public class StudentService {
 
     public Page<StudentResponseDto> searchStudentsByFio(String fio, int page, int size) {
         if (fio == null || fio.trim().isEmpty()) {
-            throw new BadRequestException("Параметр fio не может быть пустым");
+            throw new BadRequestException("Параметр ФИО не может быть пустым");
         }
 
         Pageable pageable = PageRequest.of(page, size, Sort.by("id").ascending());
